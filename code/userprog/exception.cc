@@ -73,94 +73,94 @@ static void ConvertIntToHex (unsigned v, Console *console)
 void
 ExceptionHandler(ExceptionType which)
 {
-    int type = machine->ReadRegister(2);
-    int memval, vaddr, printval, tempval, exp;
-    unsigned printvalus;        // Used for printing in hex
-    if (!initializedConsoleSemaphores) {
-       readAvail = new Semaphore("read avail", 0);
-       writeDone = new Semaphore("write done", 1);
-       initializedConsoleSemaphores = true;
-    }
-    Console *console = new Console(NULL, NULL, ReadAvail, WriteDone, 0);;
+   int type = machine->ReadRegister(2);
+   int memval, vaddr, printval, tempval, exp;
+   unsigned printvalus;        // Used for printing in hex
+   if (!initializedConsoleSemaphores) {
+      readAvail = new Semaphore("read avail", 0);
+      writeDone = new Semaphore("write done", 1);
+      initializedConsoleSemaphores = true;
+   }
+   Console *console = new Console(NULL, NULL, ReadAvail, WriteDone, 0);;
 
-    if ((which == SyscallException) && (type == SysCall_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
-    }
-    else if ((which == SyscallException) && (type == SysCall_PrintInt)) {
-       printval = machine->ReadRegister(4);
-       if (printval == 0) {
-	  writeDone->P() ;
-          console->PutChar('0');
-       }
-       else {
-          if (printval < 0) {
-	     writeDone->P() ;
-             console->PutChar('-');
-             printval = -printval;
-          }
-          tempval = printval;
-          exp=1;
-          while (tempval != 0) {
-             tempval = tempval/10;
-             exp = exp*10;
-          }
-          exp = exp/10;
-          while (exp > 0) {
-	     writeDone->P() ;
-             console->PutChar('0'+(printval/exp));
-             printval = printval % exp;
-             exp = exp/10;
-          }
-       }
-       // Advance program counters.
-       // This is to be done at the end of every system call where
-       // it is expected that the user program continues execution.
-       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
-       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-    }
-    else if ((which == SyscallException) && (type == SysCall_PrintChar)) {
-	writeDone->P() ;
-        console->PutChar(machine->ReadRegister(4));   // echo it!
-       // Advance program counters.
-       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
-       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-    }
-    else if ((which == SyscallException) && (type == SysCall_PrintString)) {
-       vaddr = machine->ReadRegister(4);
-       machine->ReadMem(vaddr, 1, &memval);
-       while ((*(char*)&memval) != '\0') {
-	  writeDone->P() ;
-          console->PutChar(*(char*)&memval);
-          vaddr++;
-          machine->ReadMem(vaddr, 1, &memval);
-       }
-       // Advance program counters.
-       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
-       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-    }
-    else if ((which == SyscallException) && (type == SysCall_PrintIntHex)) {
-       printvalus = (unsigned)machine->ReadRegister(4);
-       writeDone->P() ;
-       console->PutChar('0');
-       writeDone->P() ;
-       console->PutChar('x');
-       if (printvalus == 0) {
-          writeDone->P() ;
-          console->PutChar('0');
-       }
-       else {
-          ConvertIntToHex (printvalus, console);
-       }
-       // Advance program counters.
-       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
-       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-    } else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(FALSE);
-    }
+   if ((which == SyscallException) && (type == SysCall_Halt)) {
+      DEBUG('a', "Shutdown, initiated by user program.\n");
+      interrupt->Halt();
+   }
+   else if ((which == SyscallException) && (type == SysCall_PrintInt)) {
+      printval = machine->ReadRegister(4);
+      if (printval == 0) {
+         writeDone->P() ;
+         console->PutChar('0');
+      }
+      else {
+         if (printval < 0) {
+            writeDone->P() ;
+            console->PutChar('-');
+            printval = -printval;
+         }
+         tempval = printval;
+         exp=1;
+         while (tempval != 0) {
+            tempval = tempval/10;
+            exp = exp*10;
+         }
+         exp = exp/10;
+         while (exp > 0) {
+            writeDone->P() ;
+            console->PutChar('0'+(printval/exp));
+            printval = printval % exp;
+            exp = exp/10;
+         }
+      }
+      // Advance program counters.
+      // This is to be done at the end of every system call where
+      // it is expected that the user program continues execution.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   }
+   else if ((which == SyscallException) && (type == SysCall_PrintChar)) {
+      writeDone->P() ;
+      console->PutChar(machine->ReadRegister(4));   // echo it!
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   }
+   else if ((which == SyscallException) && (type == SysCall_PrintString)) {
+      vaddr = machine->ReadRegister(4);
+      machine->ReadMem(vaddr, 1, &memval);
+      while ((*(char*)&memval) != '\0') {
+         writeDone->P() ;
+         console->PutChar(*(char*)&memval);
+         vaddr++;
+         machine->ReadMem(vaddr, 1, &memval);
+      }
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   }
+   else if ((which == SyscallException) && (type == SysCall_PrintIntHex)) {
+      printvalus = (unsigned)machine->ReadRegister(4);
+      writeDone->P() ;
+      console->PutChar('0');
+      writeDone->P() ;
+      console->PutChar('x');
+      if (printvalus == 0) {
+         writeDone->P() ;
+         console->PutChar('0');
+      }
+      else {
+         ConvertIntToHex (printvalus, console);
+      }
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   } else {
+      printf("Unexpected user mode exception %d %d\n", which, type);
+      ASSERT(FALSE);
+   }
 }
