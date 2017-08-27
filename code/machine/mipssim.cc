@@ -36,6 +36,13 @@ Machine::Run()
         printf("Starting thread \"%s\" at time %d\n",
 	       currentThread->getName(), stats->totalTicks);
     interrupt->setStatus(UserMode);
+
+    // Run until the user program terminates
+    // through some exception or system call.
+    // The user program starts executin from the __start label
+    // in `start.s` : this is where the main function of the
+    // user program gets called from the instruction "jal main".
+    // After main returns, syscall_wrapper_Exit(0) call is made.
     for (;;) {
         OneInstruction(instr);
 	interrupt->OneTick();

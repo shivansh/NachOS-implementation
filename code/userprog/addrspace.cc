@@ -83,6 +83,8 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *executable)
     DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
 					numVirtualPages, size);
 // first, set up the translation 
+// NOTE: Currently, the mapping is one-one ; the whole address space
+// is divided into 32 physical pages of 128 bytes.
     KernelPageTable = new TranslationEntry[numVirtualPages];
     for (i = 0; i < numVirtualPages; i++) {
 	KernelPageTable[i].virtualPage = i;	// for now, virtual page # = phys page #

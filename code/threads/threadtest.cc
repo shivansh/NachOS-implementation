@@ -41,10 +41,15 @@ SimpleThread(int which)
 void
 ThreadTest()
 {
+    // Creates a new thread object and makes this thread execute
+    // the simpleThread() function by calling ThreadFork().
     DEBUG('t', "Entering SimpleTest");
 
     NachOSThread *t = new NachOSThread("forked thread");
 
+    // Both the main thread and the newly created thread
+    // via ThreadFork() call SimpleThread(); hence they
+    // execute alternately one iteration at a time.
     t->ThreadFork(SimpleThread, 1);
     SimpleThread(0);
 }

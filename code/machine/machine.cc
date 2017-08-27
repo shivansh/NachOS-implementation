@@ -100,12 +100,16 @@ Machine::~Machine()
 void
 Machine::RaiseException(ExceptionType which, int badVAddr)
 {
+    // Argument 2 denotes whether this exception is due
+    // to a bad address. We pass zero, unless any user
+    // program tries to aceess a memory location that
+    // does not belong to thethread running the program.
     DEBUG('m', "Exception: %s\n", exceptionNames[which]);
     
 //  ASSERT(interrupt->getStatus() == UserMode);
     registers[BadVAddrReg] = badVAddr;
     DelayedLoad(0, 0);			// finish anything in progress
-    interrupt->setStatus(SystemMode);
+    interrupt->setStatus(SystemMode); 	// switch to kernel mode
     ExceptionHandler(which);		// interrupts are enabled at this point
     interrupt->setStatus(UserMode);
 }

@@ -88,6 +88,12 @@ NachOSThread::~NachOSThread()
 void 
 NachOSThread::ThreadFork(VoidFunctionPtr func, int arg)
 {
+    // NOTE: arg is argument to func ;
+    // Called by the main thread.
+    // Different than the traditional UNIX fork() call. It requires that
+    // a thread be already created and it only allocates a stack in such
+    // a way that when this thread is scheduled, it will start executing
+    // the function passed as the first argument to ThreadFork().
     DEBUG('t', "Forking thread \"%s\" with func = 0x%x, arg = %d\n",
 	  name, (int) func, arg);
     
@@ -175,6 +181,8 @@ NachOSThread::FinishThread ()
 void
 NachOSThread::YieldCPU ()
 {
+    // Makes the currently running thread voluntarily yield the
+    // CPU to the scheduler so that other thread (if any) can run.
     NachOSThread *nextThread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     

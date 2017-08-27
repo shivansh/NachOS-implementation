@@ -114,6 +114,8 @@ ExceptionHandler(ExceptionType which)
           }
        }
        // Advance program counters.
+       // This is to be done at the end of every system call where
+       // it is expected that the user program continues execution.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);

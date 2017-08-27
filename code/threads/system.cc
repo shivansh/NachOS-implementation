@@ -78,6 +78,8 @@ TimerInterruptHandler(int dummy)
 void
 Initialize(int argc, char **argv)
 {
+    // Creates a main thread and makes it the
+    // currently running thread.
     int argCount;
     char* debugArgs = "";
     bool randomYield = FALSE;

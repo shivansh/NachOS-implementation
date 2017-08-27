@@ -23,6 +23,8 @@
 void
 LaunchUserProcess(char *filename)
 {
+    // Takes the executable name as argument ; allocates
+    // address space and loads the executable in memory.
     OpenFile *executable = fileSystem->Open(filename);
     ProcessAddressSpace *space;
 
@@ -31,12 +33,14 @@ LaunchUserProcess(char *filename)
 	return;
     }
     space = new ProcessAddressSpace(executable);    
+    // Attach the allocated address space to the current thread.
+    // Hence, the user program runs in the context of this main thread.
     currentThread->space = space;
 
     delete executable;			// close file
 
-    space->InitUserModeCPURegisters();		// set the initial register values
-    space->RestoreContextOnSwitch();		// load page table register
+    space->InitUserModeCPURegisters();	// set the initial register values
+    space->RestoreContextOnSwitch();	// load page table register
 
     machine->Run();			// jump to the user progam
     ASSERT(FALSE);			// machine->Run never returns;
