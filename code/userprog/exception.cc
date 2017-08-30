@@ -22,10 +22,10 @@
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
-#include "system.h"
-#include "syscall.h"
-#include "console.h"
-#include "synch.h"
+#include "system.h"     // threads/
+#include "syscall.h"    // userprog/
+#include "console.h"    // machine/
+#include "synch.h"      // threads/
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -108,14 +108,15 @@ ExceptionHandler(ExceptionType which)
          exp = exp/10;
          while (exp > 0) {
             writeDone->P() ;
+            // TODO Why a '0' ?
             console->PutChar('0'+(printval/exp));
             printval = printval % exp;
             exp = exp/10;
          }
       }
       // Advance program counters.
-      // This is to be done at the end of every system call where
-      // it is expected that the user program continues execution.
+      // NOTE: This is to be done at the end of every system call
+      // where it's expected that the user program continues execution.
       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
@@ -159,7 +160,104 @@ ExceptionHandler(ExceptionType which)
       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-   } else {
+   }
+
+   else if ((which == SyscallException) && (type == SysCall_GetPA)) {
+      // Return the physical address of the corresponding
+      // virtual address passed as the argument.
+      //
+      // Currently, we exploit the fact that the mapping b/w virtual
+      // page entry and physical page entry is one-one. If this was
+      // not the case, then the search would have to be performed to
+      // find the entry in the KernelPageTable which contains the
+      // virtual address passed as the argument, and the physical
+      // address of that entry would then be the return value.
+      // tempval = machine->KernelPageTable[machine->ReadRegister(4)].physicalPage;
+      int vpn = machine->ReadRegister(4) / PageSize;
+
+      if (vpn > (int)sizeof(machine->KernelPageTable) ||
+          machine->KernelPageTable[vpn].valid == FALSE ||
+          machine->KernelPageTable[vpn].physicalPage > NumPhysPages)
+            machine->WriteRegister(2, -1);
+
+      else
+         machine->WriteRegister(2, machine->ReadRegister(4));
+
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   }
+
+   else if ((which == SyscallException) && (type == SysCall_GetReg)) {
+      // Returns the contents of the processor register,
+      // number of which is passed as the argument.
+      // TODO Effects of fflush()
+
+      // Register 4 contains the register number, hence loaded first.
+      printval = machine->ReadRegister(machine->ReadRegister(4));
+      // TODO Contents of the register can be of any type ???
+      // Is it necessary to use console->PutChar() ? Not advisable.
+
+      machine->WriteRegister(2, printval);
+
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   }
+
+   else if ((which == SyscallException) && (type == SysCall_GetPID)) {
+      // Returns the ID of the calling thread.
+      machine->WriteRegister(2, currentThread->getPID());
+
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   }
+
+   else if ((which == SyscallException) && (type == SysCall_GetPPID)) {
+      // Returns the ID of the parent of the calling thread.
+      machine->WriteRegister(2, currentThread->getPPID());
+
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   }
+
+   else if ((which == SyscallException) && (type == SysCall_Time)) {
+      // Returns the total ticks at present.
+      // TODO ticks not in seconds ???
+      machine->WriteRegister(2, stats->totalTicks);
+
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   }
+
+   else if ((which == SyscallException) && (type == SysCall_Sleep)) {
+      // Puts the calling thread to sleep for
+      // the number of ticks passed as argument.
+
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   }
+
+   else if ((which == SyscallException) && (type == SysCall_Exit)) {
+      // Cleanly exit.
+
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   }
+
+   else {
       printf("Unexpected user mode exception %d %d\n", which, type);
       ASSERT(FALSE);
    }
