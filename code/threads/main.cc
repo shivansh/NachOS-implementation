@@ -53,13 +53,17 @@
 #include "utility.h"
 #include "system.h"
 
-
 // External functions used by this file
 
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
 extern void Print(char *file), PerformanceTest(void);
 extern void LaunchUserProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
+
+// The declaration of variable *debug is inherited from
+// utility.h but the definition is missing from all files.
+// This caused the undefined reference errors.
+FILE *debug;
 
 //----------------------------------------------------------------------
 // main
@@ -81,6 +85,7 @@ main(int argc, char **argv)
     int argCount;			// the number of arguments 
 					// for a particular command
 
+    debug = fopen("debug.log", "w");
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
     
@@ -143,6 +148,7 @@ main(int argc, char **argv)
 #endif // NETWORK
     }
 
+    fclose(debug);
     currentThread->FinishThread();	// NOTE: if the procedure "main" 
 				// returns, then the program "nachos"
 				// will exit (as any other normal program
