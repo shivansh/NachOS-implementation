@@ -277,14 +277,60 @@ ExceptionHandler(ExceptionType which)
       LaunchUserProcess(binary_name);
    }
 
-   else if ((which == SyscallException) && (type == SysCall_Exit)) {
-      // Cleanly exit.
-      // TODO INCOMPLETE ; placed to avoid SIGSEGV
+   else if ((which == SyscallException) && (type == SysCall_Fork)) {
+      // Forks and creates a new child process.
+      tempval = currentThread->getPID();
+
+      // Set the PID of the child process.
+      // TODO update currentThread!
+      currentThread->setPID();
+
+      // Set the PPID of the child process.
+      currentThread->setPPID(tempval);
+
+      printf("Inside fork\n");
+
+      // Return the PID of child to parent.
+      machine->WriteRegister(2, currentThread->getPID());
 
       // Advance program counters.
       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
-      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+      machine->WriteRegister(PCReg,     machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
+   }
+
+   else if ((which == SyscallException) && (type == SysCall_Exit)) {
+      // Cleanly exit while staying in the kernel-space.
+      // TODO INCOMPLETE ; placed to avoid SIGSEGV
+
+      // NOTE: It makes sense to have a cleanup procedure in the exit()
+      // system call as we are not supposed to get back to the userspace.
+      // It is not possible to de-allocate the thread data structure
+      // as we're still running in the thread. Instead, we set "threadToBeDestroyed"
+      // so that ProcessScheduler::ScheduleThread() will call the destructor, once
+      // we're running in the context of a different thread.
+      // DEBUG('t', "Thread marked destroyable \"%s\"\n", currentThread->getName());
+      // threadToBeDestroyed = currentThread;
+
+      // Update the PID table.
+      tempval = currentThread->getPID();
+
+      // Update minFreePID.
+      minFreePID = (tempval < minFreePID) ? tempval : minFreePID;
+
+      // Update maxPID.
+      if (tempval == maxPID) {
+         int i = tempval - 1;
+
+         while (i >= MINPID && !pidTable[i])
+            i--;
+
+         maxPID = i;
+      }
+
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg,     machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
    }
 
    else {

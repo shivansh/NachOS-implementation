@@ -61,6 +61,9 @@ extern void Cleanup();
 static void
 TimerInterruptHandler(int dummy)
 {
+    // TODO Every time this function is invoked, we need to
+    // check in the queue of threads (which we'll maintain)
+    // the ones that need to wake up.
     if (interrupt->getStatus() != IdleMode)
 	interrupt->YieldOnReturn();
 }
@@ -139,6 +142,9 @@ Initialize(int argc, char **argv)
     interrupt = new Interrupt;			// start up interrupt handling
     scheduler = new ProcessScheduler();		// initialize the ready queue
     //if (randomYield)				// start the timer (if needed)
+
+    // Generate a timer interrupt every TimerTicks with
+    // TimerInterruptHandler as the callback.
 	timer = new Timer(TimerInterruptHandler, 0, randomYield);
 
     threadToBeDestroyed = NULL;

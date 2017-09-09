@@ -50,11 +50,21 @@
 // For simplicity, this is just the max over all architectures.
 #define MachineStateSize 18 
 
-
 // Size of the thread's private execution stack.
 // WATCH OUT IF THIS ISN'T BIG ENOUGH!!!!!
 #define StackSize	(4 * 1024)	// in words
 
+// Maximum limit of threads that can exist at a time.
+// This value is governed by the number of entries in
+// the array threadPID which keeps track of thread PIDs.
+#define THREADLIMIT 256
+
+// Minimum PID a new process/thread can attain.
+#define MINPID 1
+
+extern int pidTable[THREADLIMIT];
+extern int minFreePID;
+extern int maxPID;
 
 // Thread state
 enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
@@ -98,11 +108,57 @@ class NachOSThread {
     
     void CheckOverflow();   			// Check if thread has 
 						// overflowed its stack
-    void setStatus(ThreadStatus st) { status = st; }
-    char* getName() { return (name); }
-    void Print() { printf("%s, ", name); }
-    int getPID() { return pid; }
-    int getPPID() { return ppid; }
+    void setStatus(ThreadStatus st) {
+      status = st;
+    }
+
+    char* getName() {
+      return (name);
+    }
+
+    void Print() {
+      printf("%s, ", name);
+    }
+
+    int getPID() {
+      return pid;
+    }
+
+    void setPID() {
+      // Sets a unique PID to the newly created thread.
+      // The array "pidTable" keeps track of all the PIDs
+      // that have been assigned ; assigned indices are set
+      // to 1 and unassigned indices are set to 0. The
+      // variable "minFreePID" keeps track of the least index
+      // in pidTable which is unassigned.
+      // TODO a maxPID variable is also required!
+      pid = minFreePID;
+      pidTable[minFreePID] = 1;
+
+      // Update maxPID.
+      maxPID = (pid > maxPID) ? pid : maxPID;
+
+      // Update minFreePID to the next unassigned PID.
+      int i = minFreePID + 1;
+      while (i < THREADLIMIT && pidTable[i])
+      	i++;
+
+      if (i == THREADLIMIT) {
+      	// Hopefully, this will never happen! If it does, we're doomed!
+      	fprintf(stderr, "FATAL: Out of unique PIDs!\n");
+      	// TODO Do a proper cleanup.
+      }
+      else
+      	minFreePID = i;
+    }
+
+    int getPPID() {
+      return ppid;
+    }
+
+    void setPPID(int newPPID) {
+      ppid = newPPID;
+    }
 
   private:
     // some of the private data for this class is listed above

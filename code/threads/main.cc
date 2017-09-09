@@ -57,7 +57,6 @@
 
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
 extern void Print(char *file), PerformanceTest(void);
-extern void LaunchUserProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
 
 // The declaration of variable *debug is inherited from
@@ -65,6 +64,9 @@ extern void MailTest(int networkID);
 // This caused the undefined reference errors.
 FILE *debug;
 
+int pidTable[THREADLIMIT] = {0};
+int minFreePID = MINPID; 	// TODO Assign a sane initial value.
+int maxPID = minFreePID;  	// Maximum PID currently assigned.
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -100,6 +102,7 @@ main(int argc, char **argv)
 #ifdef USER_PROGRAM
         if (!strcmp(*argv, "-x")) {        	// run a user program
 	    ASSERT(argc > 1);
+	    currentThread->setPID();
             LaunchUserProcess(*(argv + 1));
             argCount = 2;
         } else if (!strcmp(*argv, "-c")) {      // test the console
