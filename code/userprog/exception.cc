@@ -162,6 +162,14 @@ ExceptionHandler(ExceptionType which)
       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
    }
 
+   else if ((which == SyscallException) && (type == SysCall_NumInstr)) {
+      // TODO INCOMPLETE ; placed to avoid SIGSEGV
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg,     machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
+   }
+
    else if ((which == SyscallException) && (type == SysCall_GetPA)) {
       // Return the physical address of the corresponding
       // virtual address passed as the argument.
@@ -248,8 +256,30 @@ ExceptionHandler(ExceptionType which)
       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
    }
 
+   else if ((which == SyscallException) && (type == SysCall_Exec)) {
+      // Runs a new executable in the current address space.
+      // The value in register "$4" is the virtual memory
+      // address where the name of executable is located.
+      tempval = machine->ReadRegister(4);
+      int offset = 0;
+      int tempchar;
+      // We assume that the name of the executable will not
+      // be exceeding 64 bytes which is a quite relaxed value.
+      char binary_name[64];
+
+      // Read byte-by-byte from memory.
+      while(tempchar != '\0') {
+         machine->ReadMem(tempval + offset, 1, &tempchar);
+         binary_name[offset] = tempchar;
+         offset++;
+      }
+
+      LaunchUserProcess(binary_name);
+   }
+
    else if ((which == SyscallException) && (type == SysCall_Exit)) {
       // Cleanly exit.
+      // TODO INCOMPLETE ; placed to avoid SIGSEGV
 
       // Advance program counters.
       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
