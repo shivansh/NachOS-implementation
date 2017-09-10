@@ -187,15 +187,17 @@ ExceptionHandler(ExceptionType which)
       // virtual address passed as the argument, and the physical
       // address of that entry would then be the return value.
       // tempval = machine->KernelPageTable[machine->ReadRegister(4)].physicalPage;
-      int vpn = machine->ReadRegister(4) / PageSize;
+      vaddr = machine->ReadRegister(4);
+      int physicalAddr;
+      bool writing = FALSE;
+      ExceptionType exceptionName = machine->Translate((unsigned)vaddr, &physicalAddr, 100, writing);
 
-      if (vpn > (int)sizeof(machine->KernelPageTable) ||
-          machine->KernelPageTable[vpn].valid == FALSE ||
-          machine->KernelPageTable[vpn].physicalPage > NumPhysPages)
-            machine->WriteRegister(2, -1);
-
+      if (exceptionName == AddressErrorException ||
+          exceptionName == PageFaultException ||
+          exceptionName == BusErrorException)
+         machine->WriteRegister(2, -1);
       else
-         machine->WriteRegister(2, machine->ReadRegister(4));
+         machine->WriteRegister(2, physicalAddr);
 
       // Advance program counters.
       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
