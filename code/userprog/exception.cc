@@ -163,7 +163,9 @@ ExceptionHandler(ExceptionType which)
    }
 
    else if ((which == SyscallException) && (type == SysCall_NumInstr)) {
-      // TODO INCOMPLETE ; placed to avoid SIGSEGV
+      // Returns the total instruction count.
+      machine->WriteRegister(2, currentThread->currentInstrCount());
+
       // Advance program counters.
       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
       machine->WriteRegister(PCReg,     machine->ReadRegister(NextPCReg));
@@ -270,7 +272,8 @@ ExceptionHandler(ExceptionType which)
       // Read byte-by-byte from memory.
       while(tempchar != '\0') {
          machine->ReadMem(tempval + offset, 1, &tempchar);
-         binary_name[offset] = tempchar;
+         // Perform a safe pointer recast.
+         binary_name[offset] = *(char*)&tempchar;
          offset++;
       }
 
@@ -279,17 +282,14 @@ ExceptionHandler(ExceptionType which)
 
    else if ((which == SyscallException) && (type == SysCall_Fork)) {
       // Forks and creates a new child process.
+      // TODO INCOMPLETE ; Refer master branch for current progress!!
       tempval = currentThread->getPID();
 
+      // TODO update currentThread to the new child thread!
       // Set the PID of the child process.
-      // TODO update currentThread!
       currentThread->setPID();
-
       // Set the PPID of the child process.
       currentThread->setPPID(tempval);
-
-      printf("Inside fork\n");
-
       // Return the PID of child to parent.
       machine->WriteRegister(2, currentThread->getPID());
 

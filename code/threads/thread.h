@@ -160,6 +160,15 @@ class NachOSThread {
       ppid = newPPID;
     }
 
+    void incrInstrCount() {
+      // Increments instruction count
+      instrCount++;
+    }
+
+    int currentInstrCount() {
+      return instrCount;
+    }
+
   private:
     // some of the private data for this class is listed above
     
@@ -174,6 +183,7 @@ class NachOSThread {
 					// Used internally by ThreadFork()
 
     int pid, ppid;			// My pid and my parent's pid
+    int instrCount = 0; 		// Instruction count
 
 #ifdef USER_PROGRAM
 // A thread running a user program actually has *two* sets of CPU registers -- 

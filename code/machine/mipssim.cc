@@ -46,6 +46,7 @@ Machine::Run()
     for (;;) {
         OneInstruction(instr);
 	interrupt->OneTick();
+	currentThread->incrInstrCount();
 	if (singleStep && (runUntilTime <= stats->totalTicks))
 	  Debugger();
     }
