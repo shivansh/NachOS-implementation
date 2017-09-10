@@ -77,7 +77,8 @@ ExceptionHandler(ExceptionType which)
    int memval, vaddr, printval, tempval, exp;
    unsigned printvalus;        // Used for printing in hex
    int ticksUntilNow;
-   IntStatus oldstatus;
+   IntStatus oldLevel;
+   NachOSThread *nextThread;
 
    if (!initializedConsoleSemaphores) {
       readAvail = new Semaphore("read avail", 0);
@@ -256,7 +257,7 @@ ExceptionHandler(ExceptionType which)
       // the number of ticks passed as argument.
       ticksUntilNow = stats->totalTicks;        // Ticks until now.
       tempval = machine->ReadRegister(4);
-      oldstatus = interrupt->SetLevel(IntOff);  // Disable interrupts.
+      oldLevel = interrupt->SetLevel(IntOff);  // Disable interrupts.
 
       if (tempval == 0)
          currentThread->YieldCPU();
@@ -266,7 +267,7 @@ ExceptionHandler(ExceptionType which)
          currentThread->PutThreadToSleep();
       }
 
-      interrupt->SetLevel(oldstatus);
+      interrupt->SetLevel(oldLevel);
 
       // Advance program counters.
       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -324,17 +325,6 @@ ExceptionHandler(ExceptionType which)
    }
    else if ((which == SyscallException) && (type == SysCall_Exit)) {
       // Cleanly exit while staying in the kernel-space.
-      // TODO INCOMPLETE ; placed to avoid SIGSEGV
-
-      // NOTE: It makes sense to have a cleanup procedure in the exit()
-      // system call as we are not supposed to get back to the userspace.
-      // It is not possible to de-allocate the thread data structure
-      // as we're still running in the thread. Instead, we set "threadToBeDestroyed"
-      // so that ProcessScheduler::ScheduleThread() will call the destructor, once
-      // we're running in the context of a different thread.
-      // DEBUG('t', "Thread marked destroyable \"%s\"\n", currentThread->getName());
-      // threadToBeDestroyed = currentThread;
-
       // Update the PID table.
       tempval = currentThread->getPID();
 
@@ -351,9 +341,34 @@ ExceptionHandler(ExceptionType which)
          maxPID = i;
       }
 
+      threadToBeDestroyed = currentThread;
+      oldLevel = interrupt->SetLevel(IntOff);
+
       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
       machine->WriteRegister(PCReg,     machine->ReadRegister(NextPCReg));
       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
+
+      DEBUG('t', "Removing thread \"%s\"\n", currentThread->getName());
+      nextThread = scheduler->SelectNextReadyThread();
+
+      if (nextThread != NULL) {
+         fprintf(stderr, "Updating currentThread\n");
+         scheduler->ScheduleThread(nextThread);
+         currentThread = nextThread;
+         delete threadToBeDestroyed;
+      }
+
+      (void) interrupt->SetLevel(oldLevel);
+
+      // NOTE: It makes sense to have a cleanup procedure in the exit()
+      // system call as we are not supposed to get back to the userspace.
+      // It is not possible to de-allocate the thread data structure
+      // as we're still running in the thread. Instead, we set "threadToBeDestroyed"
+      // so that ProcessScheduler::ScheduleThread() will call the destructor, once
+      // we're running in the context of a different thread.
+      // DEBUG('t', "Thread marked destroyable \"%s\"\n", currentThread->getName());
+      // threadToBeDestroyed = currentThread;
+
    }
 
    else {
