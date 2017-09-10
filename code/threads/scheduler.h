@@ -21,15 +21,18 @@ class ProcessScheduler {
   public:
     ProcessScheduler();			// Initialize list of ready threads 
     ~ProcessScheduler();			// De-allocate ready list
+    void InsertToSleepList(void*, int);
 
     void MoveThreadToReadyQueue(NachOSThread* thread);	// Thread can be dispatched.
     NachOSThread* SelectNextReadyThread();		// Dequeue first thread on the ready 
 					// list, if any, and return thread.
-    void ScheduleThread (NachOSThread* nextThread);	// Cause nextThread to start running
+    void ScheduleThread(NachOSThread* nextThread);	// Cause nextThread to start running
+    void WakeSleepingThread(int);
     void Print();			// Print contents of ready list
     
   private:
     List *listOfReadyThreads;  		// queue of threads that are ready to run,
+    List *listOfSleepingThreads;
 				// but not running
 };
 

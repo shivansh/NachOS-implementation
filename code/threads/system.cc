@@ -66,6 +66,7 @@ TimerInterruptHandler(int dummy)
     // the ones that need to wake up.
     if (interrupt->getStatus() != IdleMode)
 	interrupt->YieldOnReturn();
+    scheduler->WakeSleepingThread(stats->totalTicks);
 }
 
 //----------------------------------------------------------------------

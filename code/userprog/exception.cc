@@ -76,6 +76,9 @@ ExceptionHandler(ExceptionType which)
    int type = machine->ReadRegister(2);
    int memval, vaddr, printval, tempval, exp;
    unsigned printvalus;        // Used for printing in hex
+   int ticksUntilNow;
+   IntStatus oldstatus;
+
    if (!initializedConsoleSemaphores) {
       readAvail = new Semaphore("read avail", 0);
       writeDone = new Semaphore("write done", 1);
@@ -251,6 +254,19 @@ ExceptionHandler(ExceptionType which)
    else if ((which == SyscallException) && (type == SysCall_Sleep)) {
       // Puts the calling thread to sleep for
       // the number of ticks passed as argument.
+      ticksUntilNow = stats->totalTicks;        // Ticks until now.
+      tempval = machine->ReadRegister(4);
+      oldstatus = interrupt->SetLevel(IntOff);  // Disable interrupts.
+
+      if (tempval == 0)
+         currentThread->YieldCPU();
+      else {
+         scheduler->InsertToSleepList((void*)currentThread,
+                                      ticksUntilNow + tempval);
+         currentThread->PutThreadToSleep();
+      }
+
+      interrupt->SetLevel(oldstatus);
 
       // Advance program counters.
       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -299,6 +315,13 @@ ExceptionHandler(ExceptionType which)
       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
    }
 
+   else if ((which == SyscallException) && (type == SysCall_Join)) {
+      // TODO INCOMPLETE! Added to avoid SIGSEGV
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg,     machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
+   }
    else if ((which == SyscallException) && (type == SysCall_Exit)) {
       // Cleanly exit while staying in the kernel-space.
       // TODO INCOMPLETE ; placed to avoid SIGSEGV

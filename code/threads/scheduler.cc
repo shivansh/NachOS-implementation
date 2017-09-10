@@ -30,6 +30,7 @@
 ProcessScheduler::ProcessScheduler()
 { 
     listOfReadyThreads = new List; 
+    listOfSleepingThreads = new List;
 } 
 
 //----------------------------------------------------------------------
@@ -132,6 +133,29 @@ ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
 	currentThread->space->RestoreContextOnSwitch();
     }
 #endif
+}
+
+void
+ProcessScheduler::InsertToSleepList(void *thread, int ticksUntilWake) {
+    listOfSleepingThreads->SortedInsert(thread, ticksUntilWake);
+}
+
+void
+ProcessScheduler::WakeSleepingThread(int currentTicks) {
+    int timeThreshhold;
+    NachOSThread *thread = (NachOSThread*)listOfSleepingThreads->SortedRemove(&timeThreshhold);
+
+    while(thread) {
+	if (timeThreshhold > currentTicks) {
+	    listOfSleepingThreads->SortedInsert(thread, timeThreshhold);
+	    break;
+	}
+	else {
+	    MoveThreadToReadyQueue(thread);
+	}
+
+    	thread = (NachOSThread*)listOfSleepingThreads->SortedRemove(&timeThreshhold);
+    }
 }
 
 //----------------------------------------------------------------------
