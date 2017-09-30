@@ -1,5 +1,5 @@
-/* switch.s 
- *   	Machine dependent context switch routines.  DO NOT MODIFY THESE! 
+/* switch.s
+ *   	Machine dependent context switch routines.  DO NOT MODIFY THESE!
  *
  *	Context switching is inherently machine dependent, since
  *	the registers to be saved, how to set up an initial
@@ -21,7 +21,7 @@
  *	StartupPC  - Routine to call when the thread is started.
  *
  *	ThreadRoot is called from the SWITCH() routine to start
- *	a thread for the first time. 
+ *	a thread for the first time.
  *
  * SWITCH(oldThread, newThread)
  * 	oldThread  - The current thread that was running, where the
@@ -32,7 +32,7 @@
 
 /*
  Copyright (c) 1992-1993 The Regents of the University of California.
- All rights reserved.  See copyright.h for copyright notice and limitation 
+ All rights reserved.  See copyright.h for copyright notice and limitation
  of liability and disclaimer of warranty provisions.
  */
 
@@ -57,14 +57,14 @@
 #define fp      $30     /* frame pointer */
 #define ra      $31     /* return address */
 
-        .text   
+        .text
         .align  2
 
 	.globl ThreadRoot
 	.ent	ThreadRoot,0
 ThreadRoot:
 	or	fp,z,z		# Clearing the frame pointer here
-				# makes gdb backtraces of thread stacks 
+				# makes gdb backtraces of thread stacks
 				# end here (I hope!)
 
 	jal	StartupPC	# call startup procedure
@@ -91,7 +91,7 @@ SWITCH:
 	sw	s7, S7(a0)
 	sw	fp, FP(a0)		# save frame pointer
 	sw	ra, PC(a0)		# save return address
-	
+
 	lw	sp, SP(a1)		# load the new stack pointer
 	lw	s0, S0(a1)		# load the callee-save registers
 	lw	s1, S1(a1)
@@ -102,7 +102,7 @@ SWITCH:
 	lw	s6, S6(a1)
 	lw	s7, S7(a1)
 	lw	fp, FP(a1)
-	lw	ra, PC(a1)		# load the return address	
+	lw	ra, PC(a1)		# load the return address
 
 	j	ra
 	.end SWITCH
@@ -130,12 +130,12 @@ SWITCH:
 _ThreadRoot:
 	nop  ; nop         /* These 2 nops are skipped because we are called
 			    * with a jmp+8 instruction. */
-	clr	%fp        /* Clearing the frame pointer makes gdb backtraces 
+	clr	%fp        /* Clearing the frame pointer makes gdb backtraces
 	                    * of thread stacks end here. */
 			   /* Currently the arguments are in out registers we
-			    * save them into local registers so they won't be 
+			    * save them into local registers so they won't be
 			    * trashed during the calls we make. */
-	mov	InitialPC, %l0  
+	mov	InitialPC, %l0
 	mov	InitialArg, %l1
 	mov	WhenDonePC, %l2
 			   /* Execute the code:
@@ -145,7 +145,7 @@ _ThreadRoot:
 			   */
 	call	StartupPC,0
 	nop
-	call	%l0, 1	
+	call	%l0, 1
 	mov	%l1, %o0   /* Using delay slot to setup argument to InitialPC */
 	call	%l2, 0
 	nop

@@ -1,11 +1,11 @@
-// synchlist.h 
+// synchlist.h
 //	Data structures for synchronized access to a list.
 //
 //	Implemented by surrounding the List abstraction
 //	with synchronization routines.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef SYNCHLIST_H

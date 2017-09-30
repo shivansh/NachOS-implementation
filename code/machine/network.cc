@@ -1,17 +1,17 @@
-// network.cc 
+// network.cc
 //	Routines to simulate a network interface, using UNIX sockets
 //	to deliver packets between multiple invocations of nachos.
 //
 //  DO NOT CHANGE -- part of the machine emulation
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
 #include "system.h"
 
-// Dummy functions because C++ can't call member functions indirectly 
+// Dummy functions because C++ can't call member functions indirectly
 static void NetworkReadPoll(int arg)
 { Network *net = (Network *)arg; net->CheckPktAvail(); }
 static void NetworkSendDone(int arg)
@@ -35,10 +35,10 @@ Network::Network(NetworkAddress addr, double reliability,
     handlerArg = callArg;
     sendBusy = FALSE;
     inHdr.length = 0;
-    
+
     sock = OpenSocket();
     sprintf(sockName, "SOCKET_%d", (int)addr);
-    AssignNameToSocket(sockName, sock);		 // Bind socket to a filename 
+    AssignNameToSocket(sockName, sock);		 // Bind socket to a filename
 						 // in the current directory.
 
     // start polling for incoming packets
@@ -51,8 +51,8 @@ Network::~Network()
     DeAssignNameToSocket(sockName);
 }
 
-// if a packet is already buffered, we simply delay reading 
-// the incoming packet.  In real life, the incoming 
+// if a packet is already buffered, we simply delay reading
+// the incoming packet.  In real life, the incoming
 // packet might be dropped if we can't read it in time.
 void
 Network::CheckPktAvail()
@@ -61,7 +61,7 @@ Network::CheckPktAvail()
     interrupt->Schedule(NetworkReadPoll, (int)this, NetworkTime, NetworkRecvInt);
 
     if (inHdr.length != 0) 	// do nothing if packet is already buffered
-	return;		
+	return;
     if (!PollSocket(sock)) 	// do nothing if no packet to be read
 	return;
 
@@ -80,7 +80,7 @@ Network::CheckPktAvail()
     stats->numPacketsRecvd++;
 
     // tell post office that the packet has arrived
-    (*readHandler)(handlerArg);	
+    (*readHandler)(handlerArg);
 }
 
 // notify user that another packet can be sent
@@ -93,7 +93,7 @@ Network::SendDone()
 }
 
 // send a packet by concatenating hdr and data, and schedule
-// an interrupt to tell the user when the next packet can be sent 
+// an interrupt to tell the user when the next packet can be sent
 //
 // Note we always pad out a packet to MaxWireSize before putting it into
 // the socket, because it's simpler at the receive end.
@@ -103,8 +103,8 @@ Network::Send(PacketHeader hdr, char* data)
     char toName[32];
 
     sprintf(toName, "SOCKET_%d", (int)hdr.to);
-    
-    ASSERT((sendBusy == FALSE) && (hdr.length > 0) 
+
+    ASSERT((sendBusy == FALSE) && (hdr.length > 0)
 		&& (hdr.length <= MaxPacketSize) && (hdr.from == ident));
     DEBUG('n', "Sending to addr %d, %d bytes... ", hdr.to, hdr.length);
 

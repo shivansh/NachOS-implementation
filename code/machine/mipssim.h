@@ -1,10 +1,10 @@
-// mipssim.h 
+// mipssim.h
 //	Internal data structures for simulating the MIPS instruction set.
 //
 //  DO NOT CHANGE -- part of the machine emulation
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef MIPSSIM_H
@@ -152,7 +152,7 @@ static int specialTable[] = {
 
 // Stuff to help print out each instruction, for debugging
 
-enum RegType { NONE, RS, RT, RD, EXTRA }; 
+enum RegType { NONE, RS, RT, RD, EXTRA };
 
 struct OpString {
     char *string;	// Printed version of instruction

@@ -1,5 +1,5 @@
-// addrspace.h 
-//	Data structures to keep track of executing user programs 
+// addrspace.h
+//	Data structures to keep track of executing user programs
 //	(address spaces).
 //
 //	For now, we don't keep any information about address spaces.
@@ -7,7 +7,7 @@
 //	executing the user program (see thread.h).
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef ADDRSPACE_H
@@ -29,12 +29,12 @@ class ProcessAddressSpace {
 					// before jumping to user code
 
     void SaveContextOnSwitch();			// Save/restore address space-specific
-    void RestoreContextOnSwitch();		// info on a context switch 
+    void RestoreContextOnSwitch();		// info on a context switch
 
   private:
     TranslationEntry *KernelPageTable;	// Assume linear page table translation
 					// for now!
-    unsigned int numVirtualPages;		// Number of pages in the virtual 
+    unsigned int numVirtualPages;		// Number of pages in the virtual
 					// address space
 };
 

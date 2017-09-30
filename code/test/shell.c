@@ -17,10 +17,10 @@ main()
 	syscall_wrapper_Write(prompt, 2, output);
 
 	i = 0;
-	
+
 	do {
-	
-	    syscall_wrapper_Read(&buffer[i], 1, input); 
+
+	    syscall_wrapper_Read(&buffer[i], 1, input);
 
 	} while( buffer[i++] != '\n' );
 

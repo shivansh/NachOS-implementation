@@ -1,6 +1,6 @@
 /*
  Copyright (c) 1992-1993 The Regents of the University of California.
- All rights reserved.  See copyright.h for copyright notice and limitation 
+ All rights reserved.  See copyright.h for copyright notice and limitation
  of liability and disclaimer of warranty provisions.
  */
 
@@ -105,7 +105,7 @@ char *argv[];
 			    Reg[rd(instr)] = Reg[rt(instr)] << shamt(instr);
 			    break;
 			case I_SRL:
-			    Reg[rd(instr)] = 
+			    Reg[rd(instr)] =
 				(unsigned) Reg[rt(instr)] >> shamt(instr);
 			    break;
 			case I_SRA:
@@ -115,7 +115,7 @@ char *argv[];
 			    Reg[rd(instr)] = Reg[rt(instr)] << Reg[rs(instr)];
 			    break;
 			case I_SRLV:
-			    Reg[rd(instr)] = 
+			    Reg[rd(instr)] =
 				(unsigned) Reg[rt(instr)] >> Reg[rs(instr)];
 			    break;
 			case I_SRAV:
@@ -212,7 +212,7 @@ char *argv[];
 			    break;
 			case I_SLTU:
 			    Reg[rd(instr)] =
-				((unsigned) Reg[rs(instr)] 
+				((unsigned) Reg[rs(instr)]
 					< (unsigned) Reg[rt(instr)]);
 			    break;
 			default: u(); break;
@@ -244,7 +244,7 @@ char *argv[];
 				break;
 			default: u(); break;
 		    }
-			
+
 		} break;
 
 		case I_J:
@@ -321,7 +321,7 @@ char *argv[];
 		    Reg[rt(instr)] &= (-1 << 8*(i & 0x03));
 		    if  ( (i & 0x03)== 0 )
 			Reg[rt(instr)] = 0;
-		    Reg[rt(instr)] |= 
+		    Reg[rt(instr)] |=
 			((fetch(i & 0xfffffffc)) >> 8*((-i) & 0x03));
 		    break;
 
@@ -492,7 +492,7 @@ hprint()
 				(double) 100*hists[h][i] / htotal[h],
 				(double) 100*I/htotal[h]);
 		}
-		printf("oflo %d:\t%d/%d\t%5.2f%%\n", 
+		printf("oflo %d:\t%d/%d\t%5.2f%%\n",
 			h, hoflo[h], htotal[h],
 			(double) 100*hoflo[h] / htotal[h]);
 	}
@@ -540,7 +540,7 @@ printstatistics()
 	printf("numadds = %d, numsubs = %d, numcycles = %d, frac = %5.2f%%\n",
 		numadds, numsubs,
 		arch1cycles, (double) 100 * (numadds+numsubs) / arch1cycles);
-	printf("numsuccesses = %d (%5.2f%%) numcarries = %d\n", 
+	printf("numsuccesses = %d (%5.2f%%) numcarries = %d\n",
 		numsuccesses, 100.0*numsuccesses/(numadds+numsubs), numcarries);
 
 	/*
