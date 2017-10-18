@@ -101,63 +101,8 @@ NachOSThread::ThreadFork(VoidFunctionPtr func, int arg)
 
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     scheduler->MoveThreadToReadyQueue(this);	// MoveThreadToReadyQueue assumes that interrupts
-					// are disabled!
+						// are disabled!
     (void) interrupt->SetLevel(oldLevel);
-}
-
-//----------------------------------------------------------------------
-// NachOSThread::CheckOverflow
-// 	Check a thread's stack to see if it has overrun the space
-//	that has been allocated for it.  If we had a smarter compiler,
-//	we wouldn't need to worry about this, but we don't.
-//
-// 	NOTE: Nachos will not catch all stack overflow conditions.
-//	In other words, your program may still crash because of an overflow.
-//
-// 	If you get bizarre results (such as seg faults where there is no code)
-// 	then you *may* need to increase the stack size.  You can avoid stack
-// 	overflows by not putting large data structures on the stack.
-// 	Don't do this: void foo() { int bigArray[10000]; ... }
-//----------------------------------------------------------------------
-
-void
-NachOSThread::CheckOverflow()
-{
-    if (stack != NULL)
-#ifdef HOST_SNAKE			// Stacks grow upward on the Snakes
-	ASSERT(stack[StackSize - 1] == STACK_FENCEPOST);
-#else
-	ASSERT(*stack == STACK_FENCEPOST);
-#endif
-}
-
-//----------------------------------------------------------------------
-// NachOSThread::FinishThread
-// 	Called by ThreadRoot when a thread is done executing the
-//	forked procedure.
-//
-// 	NOTE: we don't immediately de-allocate the thread data structure
-//	or the execution stack, because we're still running in the thread
-//	and we're still on the stack!  Instead, we set "threadToBeDestroyed",
-//	so that ProcessScheduler::ScheduleThread() will call the destructor, once we're
-//	running in the context of a different thread.
-//
-// 	NOTE: we disable interrupts, so that we don't get a time slice
-//	between setting threadToBeDestroyed, and going to sleep.
-//----------------------------------------------------------------------
-
-//
-void
-NachOSThread::FinishThread ()
-{
-    (void) interrupt->SetLevel(IntOff);
-    ASSERT(this == currentThread);
-
-    DEBUG('t', "Finishing thread \"%s\"\n", getName());
-
-    threadToBeDestroyed = currentThread;
-    PutThreadToSleep();					// invokes SWITCH
-    // not reached
 }
 
 //----------------------------------------------------------------------
@@ -179,7 +124,7 @@ NachOSThread::FinishThread ()
 //----------------------------------------------------------------------
 
 void
-NachOSThread::YieldCPU ()
+NachOSThread::YieldCPU()
 {
     // Makes the currently running thread voluntarily yield the
     // CPU to the scheduler so that other thread (if any) can run.
@@ -218,7 +163,7 @@ NachOSThread::YieldCPU ()
 //	off the ready list, and switching to it.
 //----------------------------------------------------------------------
 void
-NachOSThread::PutThreadToSleep ()
+NachOSThread::PutThreadToSleep()
 {
     NachOSThread *nextThread;
 
@@ -232,6 +177,157 @@ NachOSThread::PutThreadToSleep ()
 	interrupt->Idle();	// no one to run, wait for an interrupt
 
     scheduler->ScheduleThread(nextThread); // returns when we've been signalled
+}
+
+//----------------------------------------------------------------------
+// NachOSThread::FinishThread
+// 	Called by ThreadRoot when a thread is done executing the
+//	forked procedure.
+//
+// 	NOTE: we don't immediately de-allocate the thread data structure
+//	or the execution stack, because we're still running in the thread
+//	and we're still on the stack!  Instead, we set "threadToBeDestroyed",
+//	so that ProcessScheduler::ScheduleThread() will call the destructor, once we're
+//	running in the context of a different thread.
+//
+// 	NOTE: we disable interrupts, so that we don't get a time slice
+//	between setting threadToBeDestroyed, and going to sleep.
+//----------------------------------------------------------------------
+
+//
+void
+NachOSThread::FinishThread()
+{
+    (void) interrupt->SetLevel(IntOff);
+    ASSERT(this == currentThread);
+
+    DEBUG('t', "Finishing thread \"%s\"\n", getName());
+
+    threadToBeDestroyed = currentThread;
+    PutThreadToSleep();					// invokes SWITCH
+    // not reached
+}
+
+//----------------------------------------------------------------------
+// NachOSThread::CheckOverflow
+// 	Check a thread's stack to see if it has overrun the space
+//	that has been allocated for it.  If we had a smarter compiler,
+//	we wouldn't need to worry about this, but we don't.
+//
+// 	NOTE: Nachos will not catch all stack overflow conditions.
+//	In other words, your program may still crash because of an overflow.
+//
+// 	If you get bizarre results (such as seg faults where there is no code)
+// 	then you *may* need to increase the stack size.  You can avoid stack
+// 	overflows by not putting large data structures on the stack.
+// 	Don't do this: void foo() { int bigArray[10000]; ... }
+//----------------------------------------------------------------------
+
+void
+NachOSThread::CheckOverflow()
+{
+    if (stack != NULL)
+#ifdef HOST_SNAKE			// Stacks grow upward on the Snakes
+	ASSERT(stack[StackSize - 1] == STACK_FENCEPOST);
+#else
+	ASSERT(*stack == STACK_FENCEPOST);
+#endif
+}
+
+
+void
+NachOSThread::setStatus(ThreadStatus st)
+{
+    status = st;
+}
+
+char*
+NachOSThread::getName()
+{
+    return name;
+}
+
+void
+NachOSThread::Print()
+{
+    printf("%s, ", name);
+}
+
+int
+NachOSThread::getPID()
+{
+    return pid;
+}
+
+void
+NachOSThread::setPID()
+{
+    // Sets a unique PID to the newly created thread.
+    // The array "pidTable" keeps track of all the PIDs
+    // that have been assigned ; assigned indices are set
+    // to 1 and unassigned indices are set to 0. The
+    // variable "minFreePID" keeps track of the least index
+    // in pidTable which is unassigned.
+    //
+    // +-----------+-----------------+
+    // | Operation | Time complexity |
+    // |           |    (average)    |
+    // +-----------+-----------------+
+    // | Insertion |       O(1)      |
+    // +-----------+-----------------+
+    // | Deletion  |       O(1)      |
+    // +-----------+-----------------+
+    //
+    // Currently the number of entries in "pidTable" is stored in the macro
+    // THREADLIMIT which is 256 ; this is subjected to change.
+    // It is currently debatable as to what should be the minimum value of the
+    // PID that can be assigned to a new process/thread ; in "real" systems the
+    // swapper has PID 0 and init has PID 1, however it is not yet confirm if
+    // these exist currently in NachOS during runtime.
+
+    pid = minFreePID;
+    pidTable[minFreePID] = 1;
+
+    // Update maxPID.
+    maxPID = (pid > maxPID) ? pid : maxPID;
+
+    // Update minFreePID to the next unassigned PID.
+    int i = minFreePID + 1;
+    while (i < THREADLIMIT && pidTable[i])
+	i++;
+
+    if (i == THREADLIMIT) {
+	// Hopefully, this will never happen! If it does, we're doomed!
+	fprintf(stderr, "FATAL: Out of unique PIDs!\n");
+	// TODO Do a proper cleanup.
+    }
+    else
+	minFreePID = i;
+}
+
+int
+NachOSThread::getPPID()
+{
+    return ppid;
+}
+
+void
+NachOSThread::setPPID(int newPPID)
+{
+    ppid = newPPID;
+}
+
+// Increments instruction count
+void
+NachOSThread::incrInstrCount()
+{
+    instrCount++;
+}
+
+int
+NachOSThread::currentInstrCount()
+{
+    return instrCount;
 }
 
 //----------------------------------------------------------------------

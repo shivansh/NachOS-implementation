@@ -98,76 +98,32 @@ class NachOSThread {
 						// is called
 
 	// basic thread operations
-
-	void ThreadFork(VoidFunctionPtr func, int arg); 	// Make thread run (*func)(arg)
+	void ThreadFork(VoidFunctionPtr func, int arg); // Make thread run (*func)(arg)
 	void YieldCPU();  				// Relinquish the CPU if any
 	// other thread is runnable
-	void PutThreadToSleep();  				// Put the thread to sleep and
+	void PutThreadToSleep();  			// Put the thread to sleep and
 	// relinquish the processor
 	void FinishThread();  				// The thread is done executing
 
 	void CheckOverflow();   			// Check if thread has
 	// overflowed its stack
-	void setStatus(ThreadStatus st) {
-	    status = st;
-	}
+	void setStatus(ThreadStatus st);
 
-	char* getName() {
-	    return (name);
-	}
+	char* getName();
 
-	void Print() {
-	    printf("%s, ", name);
-	}
+	void Print();
 
-	int getPID() {
-	    return pid;
-	}
+	int getPID();
 
-	void setPID() {
-	    // Sets a unique PID to the newly created thread.
-	    // The array "pidTable" keeps track of all the PIDs
-	    // that have been assigned ; assigned indices are set
-	    // to 1 and unassigned indices are set to 0. The
-	    // variable "minFreePID" keeps track of the least index
-	    // in pidTable which is unassigned.
-	    // TODO a maxPID variable is also required!
-	    pid = minFreePID;
-	    pidTable[minFreePID] = 1;
+	void setPID();
 
-	    // Update maxPID.
-	    maxPID = (pid > maxPID) ? pid : maxPID;
+	int getPPID();
 
-	    // Update minFreePID to the next unassigned PID.
-	    int i = minFreePID + 1;
-	    while (i < THREADLIMIT && pidTable[i])
-		i++;
+	void setPPID(int newPPID);
 
-	    if (i == THREADLIMIT) {
-		// Hopefully, this will never happen! If it does, we're doomed!
-		fprintf(stderr, "FATAL: Out of unique PIDs!\n");
-		// TODO Do a proper cleanup.
-	    }
-	    else
-		minFreePID = i;
-	}
+	void incrInstrCount();
 
-	int getPPID() {
-	    return ppid;
-	}
-
-	void setPPID(int newPPID) {
-	    ppid = newPPID;
-	}
-
-	void incrInstrCount() {
-	    // Increments instruction count
-	    instrCount++;
-	}
-
-	int currentInstrCount() {
-	    return instrCount;
-	}
+	int currentInstrCount();
 
     private:
 	// some of the private data for this class is listed above
@@ -190,14 +146,14 @@ class NachOSThread {
 	// one for its state while executing user code, one for its state
 	// while executing kernel code.
 
-	int userRegisters[NumTotalRegs];	// user-level CPU register state
+	int userRegisters[NumTotalRegs];  // user-level CPU register state
 	bool stateRestored;
 
     public:
-	void SaveUserState();		// save user-level register state
-	void RestoreUserState();		// restore user-level register state
+	void SaveUserState();		  // save user-level register state
+	void RestoreUserState();	  // restore user-level register state
 
-	ProcessAddressSpace *space;			// User code this thread is running.
+	ProcessAddressSpace *space;	  // User code this thread is running.
 #endif
 };
 
