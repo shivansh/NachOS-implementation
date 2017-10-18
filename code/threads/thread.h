@@ -99,6 +99,10 @@ class NachOSThread {
 
 	// basic thread operations
 	void ThreadFork(VoidFunctionPtr func, int arg); // Make thread run (*func)(arg)
+
+	// Allocate a stack for thread.
+	// Used internally by ThreadFork()
+	void CreateThreadStack(VoidFunctionPtr func, int arg);
 	void YieldCPU();  				// Relinquish the CPU if any
 	// other thread is runnable
 	void PutThreadToSleep();  			// Put the thread to sleep and
@@ -134,10 +138,6 @@ class NachOSThread {
 	ThreadStatus status;		// ready, running or blocked
 	char* name;
 
-	void CreateThreadStack(VoidFunctionPtr func, int arg);
-	// Allocate a stack for thread.
-	// Used internally by ThreadFork()
-
 	int pid, ppid;			// My pid and my parent's pid
 	int instrCount = 0; 		// Instruction count
 
@@ -152,6 +152,8 @@ class NachOSThread {
     public:
 	void SaveUserState();		  // save user-level register state
 	void RestoreUserState();	  // restore user-level register state
+	void StartThread();
+	void ResetReturnValue();
 
 	ProcessAddressSpace *space;	  // User code this thread is running.
 #endif

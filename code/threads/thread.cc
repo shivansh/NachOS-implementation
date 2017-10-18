@@ -355,7 +355,7 @@ void ThreadPrint(int arg){ NachOSThread *t = (NachOSThread *)arg; t->Print(); }
 //----------------------------------------------------------------------
 
 void
-NachOSThread::CreateThreadStack (VoidFunctionPtr func, int arg)
+NachOSThread::CreateThreadStack(VoidFunctionPtr func, int arg)
 {
     stack = (int *) AllocBoundedArray(StackSize * sizeof(int));
 
@@ -426,4 +426,25 @@ NachOSThread::RestoreUserState()
 	machine->WriteRegister(i, userRegisters[i]);
     stateRestored = true;
 }
+
+void
+NachOSThread::StartThread()
+{
+    if (currentThread->space) {
+    	currentThread->RestoreUserState();
+    	currentThread->space->RestoreContextOnSwitch();
+    }
+}
+//----------------------------------------------------------------------
+// NachOSThread::ResetReturnValue
+// 	Set the return value of the thread to zero.
+// 	This is used in Syscall_Fork to set the return value of
+// 	fork() in child process to zero.
+//----------------------------------------------------------------------
+void
+NachOSThread::ResetReturnValue()
+{
+    userRegisters[2] = 0;
+}
+
 #endif

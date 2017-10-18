@@ -72,6 +72,13 @@ ConvertIntToHex (unsigned v, Console *console)
 }
 
 void
+FirstFunctionAfterFork(int dummy)
+{
+    currentThread->StartThread();
+    machine->Run();
+}
+
+void
 ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
@@ -80,6 +87,7 @@ ExceptionHandler(ExceptionType which)
     int ticksUntilNow;
     IntStatus oldLevel;
     NachOSThread *nextThread;
+    NachOSThread *child;
 
     if (!initializedConsoleSemaphores) {
         readAvail = new Semaphore("read avail", 0);
@@ -313,6 +321,13 @@ ExceptionHandler(ExceptionType which)
         // Forks and creates a new child process.
         // TODO INCOMPLETE ; Refer master branch for current progress!!
         tempval = currentThread->getPID();
+        child = new NachOSThread("Forked child");
+        child->space = new ProcessAddressSpace(currentThread->space);
+        child->SaveUserState();
+        child->ResetReturnValue();
+        child->CreateThreadStack(FirstFunctionAfterFork, 0);
+        scheduler->MoveThreadToReadyQueue(child);
+        machine->WriteRegister(2, child->getPID());
 
         // TODO update currentThread to the new child thread!
         // Set the PID of the child process.

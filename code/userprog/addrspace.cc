@@ -75,7 +75,7 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *executable)
     numVirtualPages = divRoundUp(size, PageSize);
     size = numVirtualPages * PageSize;
 
-    ASSERT(numVirtualPages <= NumPhysPages);		// check we're not trying
+    ASSERT(numVirtualPages <= NumPhysPages);	// check we're not trying
 						// to run anything too big --
 						// at least until we have
 						// virtual memory
@@ -114,6 +114,11 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *executable)
         executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
 			noffH.initData.size, noffH.initData.inFileAddr);
     }
+
+}
+
+ProcessAddressSpace::ProcessAddressSpace(ProcessAddressSpace *parentAddressSpace)
+{
 
 }
 
