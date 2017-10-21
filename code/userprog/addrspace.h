@@ -25,18 +25,20 @@ class ProcessAddressSpace {
 					// stored in the file "executable"
 
     ProcessAddressSpace(ProcessAddressSpace *parentAddressSpace);
-    ~ProcessAddressSpace();			// De-allocate an address space
+    ~ProcessAddressSpace();		// De-allocate an address space
 
-    void InitUserModeCPURegisters();		// Initialize user-level CPU registers,
+    void InitUserModeCPURegisters();	// Initialize user-level CPU registers,
 					// before jumping to user code
 
-    void SaveContextOnSwitch();			// Save/restore address space-specific
-    void RestoreContextOnSwitch();		// info on a context switch
+    void SaveContextOnSwitch();		// Save/restore address space-specific
+    void RestoreContextOnSwitch();	// info on a context switch
+    unsigned GetNumPages();
+    TranslationEntry* GetPageTable();
 
   private:
     TranslationEntry *KernelPageTable;	// Assume linear page table translation
 					// for now!
-    unsigned int numVirtualPages;		// Number of pages in the virtual
+    unsigned int numVirtualPages;	// Number of pages in the virtual
 					// address space
 };
 

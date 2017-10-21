@@ -119,7 +119,38 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *executable)
 
 ProcessAddressSpace::ProcessAddressSpace(ProcessAddressSpace *parentAddressSpace)
 {
+    numVirtualPages = parentAddressSpace->GetNumPages();
+    unsigned i, size = numVirtualPages * PageSize;
 
+    // Check that we're not trying to run anything to big.
+    ASSERT(numVirtualPages+numPagesAllocated <= NumPhysPages);
+
+    DEBUG('a', "Initializing address space, num pages %d, size %d\n",
+	    numVirtualPages, size);
+
+    // Set up the translation
+    TranslationEntry* parentPageTable = parentAddressSpace->GetPageTable();
+    KernelPageTable = new TranslationEntry[numVirtualPages];
+
+    for (i = 0; i < numVirtualPages; i++) {
+        KernelPageTable[i].virtualPage = i;
+        KernelPageTable[i].physicalPage = i+numPagesAllocated;
+        KernelPageTable[i].valid = parentPageTable[i].valid;
+        KernelPageTable[i].use = parentPageTable[i].use;
+        KernelPageTable[i].dirty = parentPageTable[i].dirty;
+        // If the code segment was entirely on a separate page, we
+        // could set its pages to be read-only.
+        KernelPageTable[i].readOnly = parentPageTable[i].readOnly;
+    }
+
+    // Copy the contents
+    unsigned parentStartAddress = parentPageTable[0].physicalPage*PageSize;
+    unsigned childStartAddress = numPagesAllocated*PageSize;
+
+    for (i = 0; i < size; i++)
+       machine->mainMemory[childStartAddress+i] = machine->mainMemory[parentStartAddress+i];
+
+    numPagesAllocated += numVirtualPages;
 }
 
 //----------------------------------------------------------------------
@@ -187,4 +218,16 @@ void ProcessAddressSpace::RestoreContextOnSwitch()
 {
     machine->KernelPageTable = KernelPageTable;
     machine->pageTableSize = numVirtualPages;
+}
+
+unsigned
+ProcessAddressSpace::GetNumPages()
+{
+   return numVirtualPages;
+}
+
+TranslationEntry*
+ProcessAddressSpace::GetPageTable()
+{
+   return KernelPageTable;
 }

@@ -152,7 +152,6 @@ class NachOSThread {
     public:
 	void SaveUserState();		  // save user-level register state
 	void RestoreUserState();	  // restore user-level register state
-	void StartThread();
 	void ResetReturnValue();
 
 	ProcessAddressSpace *space;	  // User code this thread is running.

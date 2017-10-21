@@ -23,14 +23,15 @@ extern void Cleanup();				// Cleanup, called when
 						// Nachos is done.
 extern void LaunchUserProcess(char *file), ConsoleTest(char *in, char *out);
 
-extern NachOSThread *currentThread;			// the thread holding the CPU
-extern NachOSThread *threadToBeDestroyed;  		// the thread that just finished
+extern NachOSThread *currentThread;		// the thread holding the CPU
+extern NachOSThread *threadToBeDestroyed;  	// the thread that just finished
 extern ProcessScheduler *scheduler;			// the thread scheduler
 extern Interrupt *interrupt;			// interrupt status
 extern Statistics *stats;			// performance metrics
 extern Timer *timer;				// the hardware alarm clock
 
 extern bool initializedConsoleSemaphores;       // Used to initialize the semaphores for console I/O exactly once
+extern unsigned numPagesAllocated; 		// number of allocated physical frames
 
 #ifdef USER_PROGRAM
 #include "machine.h"

@@ -427,14 +427,6 @@ NachOSThread::RestoreUserState()
     stateRestored = true;
 }
 
-void
-NachOSThread::StartThread()
-{
-    if (currentThread->space) {
-    	currentThread->RestoreUserState();
-    	currentThread->space->RestoreContextOnSwitch();
-    }
-}
 //----------------------------------------------------------------------
 // NachOSThread::ResetReturnValue
 // 	Set the return value of the thread to zero.

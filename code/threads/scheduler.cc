@@ -128,8 +128,9 @@ ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
     }
 
 #ifdef USER_PROGRAM
-    if (currentThread->space != NULL) {		// if there is an address space
-        currentThread->RestoreUserState();     // to restore, do it.
+    // If there is an address space to restore, do it.
+    if (currentThread->space != NULL) {
+        currentThread->RestoreUserState();
 	currentThread->space->RestoreContextOnSwitch();
     }
 #endif

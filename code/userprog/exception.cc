@@ -71,10 +71,44 @@ ConvertIntToHex (unsigned v, Console *console)
     }
 }
 
+//----------------------------------------------------------------------
+// Since at the time a thread is switched out it is executing in the
+// _SWITCH() function, every scheduled thread would start execution right
+// after _SWITCH() when it is selected for running at a later point in time.
+// This is, however, not true for a thread T that is scheduled for the first
+// time. Before T is scheduled, the currently running thread will call the
+// ScheduleThread() method of the ProcessScheduler class (as usual), which
+// will invoke _SWITCH(), as usual. However, after the _SWITCH() call returns,
+// the new thread T will start running at the function that you passed as the
+// first argument to CreateThreadStack(). Hence, the function passed to
+// CreateThreadStack() must carry out the things that the ScheduleThread()
+// method does after _SWITCH() returns.
+//----------------------------------------------------------------------
+
 void
 FirstFunctionAfterFork(int dummy)
 {
-    currentThread->StartThread();
+    DEBUG('t', "Now in thread \"%s\"\n", currentThread->getName());
+
+    // If the old thread gave up the processor because it was finishing,
+    // we need to delete its carcass.  Note we cannot delete the thread
+    // before now (for example, in NachOSThread::FinishThread()), because up to this
+    // point, we were still running on the old thread's stack!
+    if (threadToBeDestroyed != NULL) {
+        delete threadToBeDestroyed;
+	threadToBeDestroyed = NULL;
+    }
+
+#ifdef USER_PROGRAM
+    // If there is an address space to restore, do it.
+    if (currentThread->space != NULL) {
+        currentThread->RestoreUserState();
+	currentThread->space->RestoreContextOnSwitch();
+    }
+#endif
+
+    // Start running the user thread in the context of the
+    // just scheduled NachOS thread.
     machine->Run();
 }
 
@@ -319,28 +353,33 @@ ExceptionHandler(ExceptionType which)
 
     else if ((which == SyscallException) && (type == SysCall_Fork)) {
         // Forks and creates a new child process.
-        // TODO INCOMPLETE ; Refer master branch for current progress!!
-        tempval = currentThread->getPID();
-        child = new NachOSThread("Forked child");
-        child->space = new ProcessAddressSpace(currentThread->space);
-        child->SaveUserState();
-        child->ResetReturnValue();
-        child->CreateThreadStack(FirstFunctionAfterFork, 0);
-        scheduler->MoveThreadToReadyQueue(child);
-        machine->WriteRegister(2, child->getPID());
-
-        // TODO update currentThread to the new child thread!
-        // Set the PID of the child process.
-        currentThread->setPID();
-        // Set the PPID of the child process.
-        currentThread->setPPID(tempval);
-        // Return the PID of child to parent.
-        machine->WriteRegister(2, currentThread->getPID());
-
-        // Advance program counters.
+        //
+        // The child should start executing from the next PC, hence
+        // the program counters are advanced in advance (hah!)
         machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
         machine->WriteRegister(PCReg,     machine->ReadRegister(NextPCReg));
         machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
+
+        tempval = currentThread->getPID();
+        child = new NachOSThread("Forked child");
+        child->space = new ProcessAddressSpace(currentThread->space);
+
+        // Copy the register set of parent(the current machine registers)
+        // into the child's saved user context.
+        child->SaveUserState();
+
+        // Fork returns 0 to the child.
+        child->ResetReturnValue();
+
+        child->CreateThreadStack(FirstFunctionAfterFork, 0);
+
+        // Move the child to ready queue.
+        oldLevel = interrupt->SetLevel(IntOff);    // disable interrupts
+        scheduler->MoveThreadToReadyQueue(child);
+        interrupt->SetLevel(oldLevel);             // re-enable interrupts.
+
+        // Fork returns the child's PID to the parent.
+        machine->WriteRegister(2, child->getPID());
     }
 
     else if ((which == SyscallException) && (type == SysCall_Join)) {
@@ -350,6 +389,7 @@ ExceptionHandler(ExceptionType which)
         machine->WriteRegister(PCReg,     machine->ReadRegister(NextPCReg));
         machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
     }
+
     else if ((which == SyscallException) && (type == SysCall_Exit)) {
         // Cleanly exit while staying in the kernel-space.
         // Update the PID table.
@@ -395,7 +435,6 @@ ExceptionHandler(ExceptionType which)
         // we're running in the context of a different thread.
         // DEBUG('t', "Thread marked destroyable \"%s\"\n", currentThread->getName());
         // threadToBeDestroyed = currentThread;
-
     }
 
     else {

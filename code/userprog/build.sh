@@ -2,6 +2,9 @@
 
 set -e
 
+cd ../bin
+make
+
 cd ../threads
 make depend && make
 

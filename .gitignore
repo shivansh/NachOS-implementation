@@ -15,4 +15,7 @@ code/test/vectorsum
 code/threads/nachos
 code/userprog/nachos
 
+# Exclude log files
+debug.log
+
 assignment1.txt

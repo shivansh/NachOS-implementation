@@ -11,13 +11,15 @@
 // This defines *all* of the global data structures used by Nachos.
 // These are all initialized and de-allocated by this file.
 
-NachOSThread *currentThread;			// the thread we are running now
-NachOSThread *threadToBeDestroyed;  		// the thread that just finished
-ProcessScheduler *scheduler;			// the ready list
-Interrupt *interrupt;			// interrupt status
-Statistics *stats;			// performance metrics
-Timer *timer;				// the hardware timer device,
-					// for invoking context switches
+NachOSThread *currentThread;	    // the thread we are running now
+NachOSThread *threadToBeDestroyed;  // the thread that just finished
+ProcessScheduler *scheduler;	    // the ready list
+Interrupt *interrupt;		    // interrupt status
+Statistics *stats;		    // performance metrics
+Timer *timer;			    // the hardware timer device,
+				    // for invoking context switches
+
+unsigned numPagesAllocated; 	    // number of allocated physical frames
 
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
@@ -89,6 +91,7 @@ Initialize(int argc, char **argv)
     bool randomYield = FALSE;
 
     initializedConsoleSemaphores = false;
+    numPagesAllocated = 0;
 
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
