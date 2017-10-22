@@ -337,18 +337,21 @@ ExceptionHandler(ExceptionType which)
         int offset = 0;
         int tempchar;
         // We assume that the name of the executable will not
-        // be exceeding 64 bytes which is a quite relaxed value.
-        char binary_name[64];
+        // be exceeding 1024 bytes which is a quite relaxed value.
+        char executable_name[1024];
 
         // Read byte-by-byte from memory.
-        while(tempchar != '\0') {
-            machine->ReadMem(tempval + offset, 1, &tempchar);
+        machine->ReadMem(tempval + offset, 1, &tempchar);
+        while((*(char*)&tempchar) != '\0') {
             // Perform a safe pointer recast.
-            binary_name[offset] = *(char*)&tempchar;
+            executable_name[offset] = *(char*)&tempchar;
             offset++;
+            machine->ReadMem(tempval + offset, 1, &tempchar);
         }
+        executable_name[offset] = *(char*)&tempchar;
 
-        LaunchUserProcess(binary_name);
+        // Load the executable and start running it.
+        LaunchUserProcess(executable_name);
     }
 
     else if ((which == SyscallException) && (type == SysCall_Fork)) {
