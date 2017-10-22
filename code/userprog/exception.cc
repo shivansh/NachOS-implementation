@@ -116,7 +116,7 @@ void
 ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
-    int memval, vaddr, printval, tempval, exp;
+    int memval, vaddr, printval, tempval, exitcode, exp;
     unsigned printvalus;        // Used for printing in hex
     int ticksUntilNow;
     IntStatus oldLevel;
@@ -395,8 +395,12 @@ ExceptionHandler(ExceptionType which)
 
     else if ((which == SyscallException) && (type == SysCall_Exit)) {
         // Cleanly exit while staying in the kernel-space.
-        // Update the PID table.
+        exitcode = machine->ReadRegister(4);
         tempval = currentThread->getPID();
+
+        // Log exit status in stderr.
+        fprintf(stderr, "[pid %d]: Encountered exit status %d\n",
+                        tempval, exitcode);
 
         // Update minFreePID.
         minFreePID = (tempval < minFreePID) ? tempval : minFreePID;
@@ -418,6 +422,8 @@ ExceptionHandler(ExceptionType which)
         machine->WriteRegister(PCReg,     machine->ReadRegister(NextPCReg));
         machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
 
+        // Schedule the next thread from ready queue.
+        // TODO: Validate this.
         DEBUG('t', "Removing thread \"%s\"\n", currentThread->getName());
         nextThread = scheduler->SelectNextReadyThread();
 
