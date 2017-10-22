@@ -1,0 +1,21 @@
+*.coff
+
+# Exclude binaries
+code/bin/coff2noff
+code/test/forkjoin
+code/test/halt
+code/test/matmult
+code/test/printtest
+code/test/shell
+code/test/sort
+code/test/testexec
+code/test/testregPA
+code/test/testyield
+code/test/vectorsum
+code/threads/nachos
+code/userprog/nachos
+
+# Exclude log files
+debug.log
+
+assignment1.txt
