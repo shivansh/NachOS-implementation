@@ -19,7 +19,9 @@ Statistics *stats;		    // performance metrics
 Timer *timer;			    // the hardware timer device,
 				    // for invoking context switches
 
+int thread_count;
 unsigned numPagesAllocated; 	    // number of allocated physical frames
+NachOSThread* threadContainer[THREADLIMIT];
 
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
@@ -90,8 +92,12 @@ Initialize(int argc, char **argv)
     char* debugArgs = "";
     bool randomYield = FALSE;
 
+    thread_count = 0;
     initializedConsoleSemaphores = false;
     numPagesAllocated = 0;
+
+    for (int i = 0; i < THREADLIMIT; i++)
+    	threadContainer[i] = NULL;
 
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program

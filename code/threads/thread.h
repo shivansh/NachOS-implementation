@@ -58,6 +58,7 @@
 // This value is governed by the number of entries in
 // the array threadPID which keeps track of thread PIDs.
 #define THREADLIMIT 256
+#define CHILDLIMIT 64
 
 // Minimum PID a new process/thread can attain.
 #define MINPID 1
@@ -125,9 +126,18 @@ class NachOSThread {
 
 	void setPPID(int newPPID);
 
+	void TrackForkedChild(int child_pid);
+
+	int CheckIfChild(int child_pid);
+
+	int JoinWithChild(int child_index);
+
+	void MarkChildExited(int child_pid, int exitcode);
+
 	void incrInstrCount();
 
 	int currentInstrCount();
+
 
     private:
 	// some of the private data for this class is listed above
@@ -135,11 +145,17 @@ class NachOSThread {
 	int* stack; 	 		// Bottom of the stack
 	// NULL if this is the main thread
 	// (If NULL, don't deallocate stack)
+
 	ThreadStatus status;		// ready, running or blocked
 	char* name;
 
 	int pid, ppid;			// My pid and my parent's pid
-	int instrCount = 0; 		// Instruction count
+	int child_wait_id;
+	int child_count;
+	int childPIDContainer[CHILDLIMIT];
+	int childExitStatusContainer[CHILDLIMIT];
+	int childStateContainer[CHILDLIMIT];
+	int instrCount; 		// Instruction count
 
 #ifdef USER_PROGRAM
 	// A thread running a user program actually has *two* sets of CPU registers --

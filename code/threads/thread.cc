@@ -42,6 +42,18 @@ NachOSThread::NachOSThread(char* threadName)
     space = NULL;
     stateRestored = true;
 #endif
+    child_count = 0;
+    instrCount = 0;
+    child_wait_id = -1;
+
+    // Allocate a unique PID for the current NachOSThread.
+    setPID();
+    threadContainer[pid] = this;
+
+    for (int i = 0; i < CHILDLIMIT; i++) {
+    	childStateContainer[i] = 0;
+    	childExitStatusContainer[i] = 0;
+    }
 }
 
 //----------------------------------------------------------------------
@@ -303,6 +315,86 @@ NachOSThread::setPID()
     }
     else
 	minFreePID = i;
+}
+
+//----------------------------------------------------------------------
+// NachOSThread::TrackForkedChild
+// 	Register the newly forked child into the array
+// 	used for keeping track of all the children.
+//----------------------------------------------------------------------
+void
+NachOSThread::TrackForkedChild(int child_pid)
+{
+    childPIDContainer[child_count++] = child_pid;
+}
+
+//----------------------------------------------------------------------
+// NachOSThread::CheckIfChild
+// 	Check if the passed PID belongs to one of the
+// 	children of the currently running thread.
+//
+// 	Return value
+// 	------------
+// 		0: child_pid belongs to one of the children
+// 		1: otherwise
+//----------------------------------------------------------------------
+int
+NachOSThread::CheckIfChild(int child_pid)
+{
+    for (int i = 0; i < child_count; i++)
+    	if (childPIDContainer[i] == child_pid)
+    	    return i;
+
+    return -1;
+}
+
+//----------------------------------------------------------------------
+// NachOSThread::JoinWithChild
+//
+// 	Return value
+// 	------------
+// 		0: child_pid belongs to one of the children
+// 		1: otherwise
+//----------------------------------------------------------------------
+int
+NachOSThread::JoinWithChild(int child_index)
+{
+    if (!childStateContainer[child_index]) {
+    	// Child has not exited.
+    	child_wait_id = child_index;
+    	IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    	PutThreadToSleep();
+    	interrupt->SetLevel(IntOff);
+    }
+    return childExitStatusContainer[child_index];
+}
+
+//----------------------------------------------------------------------
+// NachOSThread::MarkChildExited
+// 	Sets the appropriate index in the childStateContainer as 1,
+// 	denoting that the child having child_pid corresponding to
+// 	that index has exited.
+//----------------------------------------------------------------------
+void
+NachOSThread::MarkChildExited(int child_pid, int exitcode)
+{
+    int i;
+    for (i = 0; i < child_count; i++)
+    	if (childPIDContainer[i] == child_pid)
+    	    break;
+
+    childStateContainer[i] = 1;
+    childExitStatusContainer[i] = exitcode;
+
+    // Check if the child which exited is the one on
+    // which the parent was 'wait()'ing on.
+    if (child_wait_id == i) {
+    	child_wait_id = -1;
+    	// Wake the parent.
+    	IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    	scheduler->MoveThreadToReadyQueue(this);
+    	interrupt->SetLevel(oldLevel);
+    }
 }
 
 int

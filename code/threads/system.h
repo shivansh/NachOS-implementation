@@ -32,6 +32,8 @@ extern Timer *timer;				// the hardware alarm clock
 
 extern bool initializedConsoleSemaphores;       // Used to initialize the semaphores for console I/O exactly once
 extern unsigned numPagesAllocated; 		// number of allocated physical frames
+extern int thread_count;
+extern NachOSThread* threadContainer[THREADLIMIT];
 
 #ifdef USER_PROGRAM
 #include "machine.h"

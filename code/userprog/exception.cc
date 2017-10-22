@@ -121,6 +121,7 @@ ExceptionHandler(ExceptionType which)
     int ticksUntilNow;
     IntStatus oldLevel;
     NachOSThread *nextThread;
+    NachOSThread *parent;
     NachOSThread *child;
 
     if (!initializedConsoleSemaphores) {
@@ -363,7 +364,6 @@ ExceptionHandler(ExceptionType which)
         machine->WriteRegister(PCReg,     machine->ReadRegister(NextPCReg));
         machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
 
-        tempval = currentThread->getPID();
         child = new NachOSThread("Forked child");
         child->space = new ProcessAddressSpace(currentThread->space);
 
@@ -383,11 +383,26 @@ ExceptionHandler(ExceptionType which)
 
         // Fork returns the child's PID to the parent.
         machine->WriteRegister(2, child->getPID());
+
+        // Register newly forked child.
+        currentThread->TrackForkedChild(child->getPID());
     }
 
     else if ((which == SyscallException) && (type == SysCall_Join)) {
         // TODO INCOMPLETE! Added to avoid SIGSEGV
         // Advance program counters.
+        int child_pid = machine->ReadRegister(4);
+        int child_index;
+
+        // Verify if the passed PID belongs to one of the children.
+        if ((child_index = currentThread->CheckIfChild(child_pid)) == -1) {
+            fprintf(stderr, "Cannot join with invalid child\n");
+            exitcode = -1;
+        } else
+            exitcode = currentThread->JoinWithChild(child_index);
+
+        machine->WriteRegister(2, exitcode);
+
         machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
         machine->WriteRegister(PCReg,     machine->ReadRegister(NextPCReg));
         machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
@@ -397,6 +412,19 @@ ExceptionHandler(ExceptionType which)
         // Cleanly exit while staying in the kernel-space.
         exitcode = machine->ReadRegister(4);
         tempval = currentThread->getPID();
+        int ppid = currentThread->getPPID();
+
+        // Since the minimum value of PID can be 1, ppid 0 means that
+        // the current theead does not have any parent, i.e. it is
+        // the first thread that was created.
+        if (ppid != 0) {
+            // This thread is not first thread, hence has a parent.
+            parent = threadContainer[currentThread->getPPID()];
+            fprintf(stderr, "%d", currentThread->getPPID());
+
+            // Mark the status of the current child as 'exited'.
+            parent->MarkChildExited(tempval, exitcode);
+        }
 
         // Log exit status in stderr.
         fprintf(stderr, "[pid %d]: Encountered exit status %d\n",
