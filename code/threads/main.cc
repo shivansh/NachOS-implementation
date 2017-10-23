@@ -52,6 +52,7 @@
 
 #include "utility.h"
 #include "system.h"
+#include <string.h>
 
 
 // External functions used by this file
@@ -78,12 +79,20 @@ extern void MailTest(int networkID);
 int
 main(int argc, char **argv)
 {
-    int argCount;			// the number of arguments 
-					// for a particular command
+    int argCount;		// the number of arguments 
+				// for a particular command
+    FILE *fp;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read = 0;
+    char *token;
+    char executables[64][128];  // List of executables to be scheduled.
+    int priority[64]; 		// Priority of each executable.
+    int executable_count = 0; 	// Number of executables.
 
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
-    
+
 #ifdef THREADS
     ThreadTest();
 #endif
@@ -108,7 +117,39 @@ main(int argc, char **argv)
 	    interrupt->Halt();		// once we start the console, then 
 					// Nachos will loop forever waiting 
 					// for console input
+	} else if (!strcmp(*argv, "-F")) {
+	    ASSERT(argc == 2);
+
+	    fp = fopen(argv[1], "r");
+	    if (fp == NULL) {
+	    	// TODO Handle failure
+	    }
+
+	    while ((read = getline(&line, &len, fp)) != -1) {
+	    	token = strtok(line, " ");
+	    	// TODO Handle invalid cases.
+		if (token)
+		    sprintf(executables[executable_count], "%s", token);
+
+		token = strtok(NULL, " ");
+		if (token)
+		    priority[executable_count] = (int)atoi(token);
+		else
+		    priority[executable_count] = -1;  // FIXME
+
+		executable_count++;
+	    }
+
+	    // Log the parsed list of executables with
+	    // their corresponding priorities.
+	    // TODO Tabularize.
+	    printf("Following exectables will be scheduled:\n");
+	    for (int i = 0; i < executable_count; i++)
+	    	printf("%s %d\n", executables[i], priority[i]);
+
+	    fclose(fp);
 	}
+
 #endif // USER_PROGRAM
 #ifdef FILESYS
 	if (!strcmp(*argv, "-cp")) { 		// copy from UNIX to Nachos
