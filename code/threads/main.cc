@@ -89,6 +89,8 @@ main(int argc, char **argv)
     int executable_count = 0; 	// Number of executables.
     size_t len = 0;
     ssize_t read = 0;
+    int sched_algo_number;
+    SchedulingAlgo sched_algo;
 
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
@@ -125,12 +127,23 @@ main(int argc, char **argv)
 	    	// TODO Handle failure
 	    }
 
+	    if (read = getline(&line, &len, fp) != -1) {
+		sched_algo_number = (int)atoi(line);
+		if (sched_algo_number < 1 || sched_algo_number > 4) {
+		    fprintf(stderr, "Bad scheduling algorithm number\n");
+		    return 1;
+		}
+		sched_algo = static_cast<SchedulingAlgo>(sched_algo_number);
+	    }
+
 	    while ((read = getline(&line, &len, fp)) != -1) {
 	    	token = strtok(line, " ");
-	    	// TODO Handle invalid cases.
+	    	// TODO Handle invalid cases
+		// Parse the executable name.
 		if (token)
 		    sprintf(executables[executable_count], "%s", token);
 
+		// Parse the priority value.
 		token = strtok(NULL, " ");
 		if (token)
 		    priority[executable_count] = (int)atoi(token);
@@ -143,6 +156,7 @@ main(int argc, char **argv)
 	    // Log the parsed list of executables with
 	    // their corresponding priorities.
 	    // TODO Tabularize.
+	    printf("Scheduling algorithm: %d\n", sched_algo_number);
 	    printf("Following exectables will be scheduled:\n");
 	    for (int i = 0; i < executable_count; i++)
 	    	printf("%s %d\n", executables[i], priority[i]);

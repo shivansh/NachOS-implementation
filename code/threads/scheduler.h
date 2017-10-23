@@ -37,4 +37,16 @@ class ProcessScheduler {
 	List *listOfReadyThreads;
 };
 
+
+//----------------------------------------------------------------------
+// SchedulingAlgo
+// 	Enum for all supported scheduling algorithms.
+//----------------------------------------------------------------------
+enum SchedulingAlgo {
+    NPtvNachOS = 1, 	 	// Non pre-emptive NachOS algo
+    NPtvShortestNextBurst = 2,	// Non pre-emptive shortest next CPU burst first
+    PtvRoundRobin = 3,   	// Pre-emptive fixed quantum round robin
+    PtvPrioritySched = 4 	// Unix like pre-emptive priority scheduling
+};
+
 #endif // SCHEDULER_H
