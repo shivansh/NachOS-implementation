@@ -25,6 +25,137 @@
 // stack overflows
 
 //----------------------------------------------------------------------
+// ThreadStatistics::ThreadStatistics
+//      Initialize the ThreadStatistics object by appropriately
+//      setting various time parameters.
+//----------------------------------------------------------------------
+ThreadStatistics::ThreadStatistics()
+{
+   setThreadStartTime(stats->totalTicks);
+   setThreadEndTime(0);
+   setBurstStartTime(0);
+   setBurstEndTime(stats->totalTicks);
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::getThreadStartTime
+//      Getter for threadStartTime.
+//----------------------------------------------------------------------
+int
+ThreadStatistics::getThreadStartTime()
+{
+   return threadStartTime;
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::setThreadStartTime
+//      Setter for threadStartTime.
+//----------------------------------------------------------------------
+void
+ThreadStatistics::setThreadStartTime(int _threadStartTime)
+{
+   threadStartTime = _threadStartTime;
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::getThreadEndTime
+//      Getter for threadEndTime.
+//----------------------------------------------------------------------
+int
+ThreadStatistics::getThreadEndTime()
+{
+   return threadEndTime;
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::setThreadEndTime
+//      Setter for threadEndTime.
+//----------------------------------------------------------------------
+void
+ThreadStatistics::setThreadEndTime(int _threadEndTime)
+{
+   threadEndTime = _threadEndTime;
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::getBurstStartTime
+//      Getter for burstStartTime.
+//----------------------------------------------------------------------
+int
+ThreadStatistics::getBurstStartTime()
+{
+   return burstStartTime;
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::setBurstStartTime
+//      Setter for burstStartTime.
+//----------------------------------------------------------------------
+void
+ThreadStatistics::setBurstStartTime(int _burstStartTime)
+{
+   burstStartTime = _burstStartTime;
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::getBurstEndTime
+//      Getter for burstEndTime.
+//----------------------------------------------------------------------
+int
+ThreadStatistics::getBurstEndTime()
+{
+   return burstEndTime;
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::setBurstEndTime
+//      Setter for burstEndTime.
+//----------------------------------------------------------------------
+void
+ThreadStatistics::setBurstEndTime(int _burstEndTime)
+{
+   burstEndTime = _burstEndTime;
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::getWaitTimeAndRun
+//      Returns the waiting time of the thread in the ready queue
+//      before it starts running. As the thread is now transitioning
+//      to RUNNING state, we update the start of its CPU burst.
+//----------------------------------------------------------------------
+int
+ThreadStatistics::getWaitTimeAndRun(int currentTime)
+{
+   setBurstStartTime(currentTime);
+   return currentTime - getBurstEndTime();
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::getRunningTimeAndSleep
+//      Returns the duration in which the thread was in the RUNNING
+//      state i.e. it's CPU burst. As the thread is now transition
+//      to SLEEP state, we update the end of its CPU burst.
+//----------------------------------------------------------------------
+int
+ThreadStatistics::getRunningTimeAndSleep(int currentTime)
+{
+   setBurstEndTime(currentTime);
+   return getBurstStartTime() - currentTime;
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::moveToReadyQueue
+//      Mark the end of current CPU burst when the thread is moved
+//      to the ready queue. Next time when the thread is run,
+//      the WAIT time can be calculated using burstEndTime.
+//----------------------------------------------------------------------
+void
+ThreadStatistics::moveToReadyQueue(int currentTime)
+{
+   setBurstEndTime(currentTime);
+}
+
+//----------------------------------------------------------------------
 // NachOSThread::NachOSThread
 // 	Initialize a thread control block, so that we can then call
 //	NachOSThread::ThreadFork.
