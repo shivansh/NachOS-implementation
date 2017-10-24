@@ -149,18 +149,6 @@ ThreadStatistics::getRunningTimeAndSleep(int currentTime)
 }
 
 //----------------------------------------------------------------------
-// ThreadStatistics::updateReadyQueueParams
-//      Mark the end of current CPU burst when the thread is moved
-//      to the ready queue. Next time when the thread is run,
-//      the WAIT time can be calculated using burstEndTime.
-//----------------------------------------------------------------------
-void
-ThreadStatistics::updateReadyQueueParams(int currentTime)
-{
-   setBurstEndTime(currentTime);
-}
-
-//----------------------------------------------------------------------
 // NachOSThread::NachOSThread
 // 	Initialize a thread control block, so that we can then call
 //	NachOSThread::ThreadFork.

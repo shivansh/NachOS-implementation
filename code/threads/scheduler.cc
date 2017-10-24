@@ -57,9 +57,6 @@ ProcessScheduler::MoveThreadToReadyQueue (NachOSThread *thread)
 
     thread->setStatus(READY);
     listOfReadyThreads->Append((void *)thread);
-
-    // Mark the end of CPU burst
-    thread->statistics->updateReadyQueueParams(stats->totalTicks);
 }
 
 //----------------------------------------------------------------------
