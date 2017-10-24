@@ -70,16 +70,7 @@ ProcessScheduler::MoveThreadToReadyQueue (NachOSThread *thread)
 NachOSThread *
 ProcessScheduler::SelectNextReadyThread ()
 {
-    NachOSThread *thread = (NachOSThread *)listOfReadyThreads->Remove();
-
-    if (thread != NULL) {
-        // Mark the start of CPU burst
-        int waitTime = thread->statistics->getWaitTimeAndRun(stats->totalTicks);
-        stats->trackWaitTime(waitTime);
-        thread->statistics->setBurstStartTime(stats->totalTicks);
-    }
-
-    return thread;
+    return (NachOSThread *)listOfReadyThreads->Remove();
 }
 
 //----------------------------------------------------------------------
@@ -100,6 +91,7 @@ void
 ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
 {
     int runningTime;
+    int waitTime;
     NachOSThread *oldThread = currentThread;
 
 #ifdef USER_PROGRAM			// ignore until running user programs
@@ -120,6 +112,9 @@ ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
     currentThread = nextThread;		    // switch to the next thread
     currentThread->setStatus(RUNNING);      // nextThread is now running
 
+    // Mark the start of CPU burst.
+    waitTime = currentThread->statistics->getWaitTimeAndRun(stats->totalTicks);
+    stats->trackWaitTime(waitTime);
     currentThread->statistics->setBurstStartTime(stats->totalTicks);
 
     DEBUG('t', "Switching from thread \"%s\" with pid %d to thread \"%s\" with pid %d\n",
