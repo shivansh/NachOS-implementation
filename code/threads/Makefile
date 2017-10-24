@@ -212,7 +212,16 @@ stats.o: ../machine/stats.cc /usr/include/stdc-predef.h \
  /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
  /usr/lib/gcc/x86_64-linux-gnu/6/include/stdarg.h \
  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
- /usr/include/string.h /usr/include/xlocale.h ../machine/stats.h
+ /usr/include/string.h /usr/include/xlocale.h ../machine/stats.h \
+ /usr/include/c++/6/climits \
+ /usr/include/x86_64-linux-gnu/c++/6/32/bits/c++config.h \
+ /usr/include/x86_64-linux-gnu/c++/6/32/bits/os_defines.h \
+ /usr/include/x86_64-linux-gnu/c++/6/32/bits/cpu_defines.h \
+ /usr/lib/gcc/x86_64-linux-gnu/6/include-fixed/limits.h \
+ /usr/lib/gcc/x86_64-linux-gnu/6/include-fixed/syslimits.h \
+ /usr/include/limits.h /usr/include/bits/posix1_lim.h \
+ /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
+ /usr/include/bits/posix2_lim.h /usr/include/bits/xopen_lim.h
 timer.o: ../machine/timer.cc /usr/include/stdc-predef.h \
  ../threads/copyright.h ../machine/timer.h ../threads/utility.h \
  ../threads/copyright.h ../machine/sysdep.h /usr/include/stdio.h \

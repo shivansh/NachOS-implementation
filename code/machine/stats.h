@@ -36,8 +36,25 @@ class Statistics {
     int numPacketsSent;		// number of packets sent over the network
     int numPacketsRecvd;	// number of packets received over the network
 
-    Statistics(); 		// initialize everything to zero
+    int cpuBusyTime; 		// Total CPU busy time
+    int totalExecutionTime; 	// Total execution time
+    int cpuUtilization; 	// CPU utilization
+    int maxCPUBurst; 		// Maximum CPU burst encountered
+    int minCPUBurst;		// Minimum CPU burst encountered
+    int avgCPUBurst;		// Average CPU burst
+    int totalCPUBursts; 	// Number of non-zero CPU bursts
+    int avgWaitingTime;		// Average waiting time in the ready queue
+    int totalWaitTimes;		// Number of transitions to ready queue
+    int maxFinishTime;		// Maximum thread completion time
+    int minFinishTime; 		// Minimum thread completion time
+    int avgFinishTime; 		// Average thread completion time
+    int varFinishTime; 		// Variance of thread completion times
+    int totalCompletions; 	// Total number of exited threads
 
+    Statistics(); 		// initialize (nearly) everything to zero
+    void trackCPUBurst(int);
+    void trackWaitTime(int);
+    void trackFinishTime(int);
     void Print();		// print collected statistics
 };
 
