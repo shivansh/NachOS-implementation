@@ -169,6 +169,8 @@ Initialize(int argc, char **argv)
     currentThread = new NachOSThread("main");		
     currentThread->setStatus(RUNNING);
 
+    stats->simulationStartTime = stats->totalTicks;
+
     interrupt->Enable();
     CallOnUserAbort(Cleanup);			// if user hits ctl-C
     

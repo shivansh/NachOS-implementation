@@ -26,7 +26,7 @@ Statistics::Statistics()
     numDiskReads = numDiskWrites = 0;
     numConsoleCharsRead = numConsoleCharsWritten = 0;
     numPageFaults = numPacketsSent = numPacketsRecvd = 0;
-    cpuBusyTime = totalExecutionTime = cpuUtilization = 0;
+    cpuBusyTime = cpuUtilization = 0;
     maxCPUBurst = maxFinishTime = INT_MIN;
     minCPUBurst = minFinishTime = INT_MAX;
     avgCPUBurst = totalCPUBursts = avgWaitingTime = avgFinishTime = 0;
@@ -56,9 +56,8 @@ Statistics::trackCPUBurst(int currentBurst)
 void
 Statistics::trackWaitTime(int currentWaitTime)
 {
-    avgWaitingTime = avgWaitingTime*totalWaitTimes + currentWaitTime;
-    totalCPUBursts++;
-    avgWaitingTime /= totalCPUBursts;
+    avgWaitingTime = avgWaitingTime*executableCount + currentWaitTime;
+    avgWaitingTime /= executableCount;
 }
 
 //----------------------------------------------------------------------
@@ -99,8 +98,8 @@ Statistics::Print()
 	   "\n Statistical Data"
 	   "\n------------------\n\n");
     printf("Total CPU busy time: %d\n", cpuBusyTime);
-    printf("Total execution time: %d\n", totalExecutionTime);
-    printf("CPU utilization: %d\n", cpuUtilization);
+    printf("Total execution time: %d\n", totalTicks - simulationStartTime);
+    printf("CPU utilization: %d\n", cpuBusyTime / (totalTicks-simulationStartTime));
     printf("Maximum CPU burst: %d\n", maxCPUBurst);
     printf("Minimum CPU burst: %d\n", minCPUBurst);
     printf("Average CPU burst: %d\n", avgCPUBurst);

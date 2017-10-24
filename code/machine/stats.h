@@ -36,15 +36,15 @@ class Statistics {
     int numPacketsSent;		// number of packets sent over the network
     int numPacketsRecvd;	// number of packets received over the network
 
+    int simulationStartTime; 	// Time when simulation of batch file started
+    int batchSize;
     int cpuBusyTime; 		// Total CPU busy time
-    int totalExecutionTime; 	// Total execution time
     int cpuUtilization; 	// CPU utilization
     int maxCPUBurst; 		// Maximum CPU burst encountered
     int minCPUBurst;		// Minimum CPU burst encountered
     int avgCPUBurst;		// Average CPU burst
     int totalCPUBursts; 	// Number of non-zero CPU bursts
     int avgWaitingTime;		// Average waiting time in the ready queue
-    int totalWaitTimes;		// Number of transitions to ready queue
     int maxFinishTime;		// Maximum thread completion time
     int minFinishTime; 		// Minimum thread completion time
     int avgFinishTime; 		// Average thread completion time

@@ -72,6 +72,7 @@ LaunchBatchOfProcesses(char executables[][128], int *priorities, int batchSize)
     // work is done, it can exit.
     exitThreadArray[currentThread->GetPID()] = true;
     currentThread->FinishThread();
+
     machine->Run();
 }
 

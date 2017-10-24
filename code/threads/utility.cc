@@ -23,6 +23,8 @@
 
 static char *enableFlags = NULL; // controls which DEBUG messages are printed 
 
+int executableCount;
+
 //----------------------------------------------------------------------
 // DebugInit
 //      Initialize so that only DEBUG messages with a flag in flagList 

@@ -164,6 +164,7 @@ main(int argc, char **argv)
 
 	    fclose(fp);
 
+	    executableCount = executable_count;
 	    LaunchBatchOfProcesses(executables, priority, executable_count);
 	}
 
