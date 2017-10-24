@@ -140,7 +140,7 @@ int
 ThreadStatistics::getRunningTimeAndSleep(int currentTime)
 {
    setBurstEndTime(currentTime);
-   return getBurstStartTime() - currentTime;
+   return currentTime - getBurstStartTime();
 }
 
 //----------------------------------------------------------------------

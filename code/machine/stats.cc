@@ -104,11 +104,10 @@ Statistics::Print()
     printf("Maximum CPU burst: %d\n", maxCPUBurst);
     printf("Minimum CPU burst: %d\n", minCPUBurst);
     printf("Average CPU burst: %d\n", avgCPUBurst);
-    printf("Number of non-zero CPU burst: %d\n", totalCPUBursts);
+    printf("Number of non-zero CPU bursts: %d\n", totalCPUBursts);
     printf("Average waiting time in ready queue: %d\n", avgWaitingTime);
     printf("Maximum thread completion time: %d\n", maxFinishTime);
     printf("Minimum thread completion time: %d\n", minFinishTime);
     printf("Average thread completion time: %d\n", avgFinishTime);
     printf("Variance of thread completion times: %d\n", varFinishTime);
-
 }

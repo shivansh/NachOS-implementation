@@ -79,6 +79,7 @@ ProcessScheduler::SelectNextReadyThread ()
         // Mark the start of CPU burst
         int waitTime = thread->statistics->getWaitTimeAndRun(stats->totalTicks);
         stats->trackWaitTime(waitTime);
+        thread->statistics->setBurstStartTime(stats->totalTicks);
     }
 
     return thread;
@@ -105,8 +106,9 @@ ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
     NachOSThread *oldThread = currentThread;
 
 #ifdef USER_PROGRAM			// ignore until running user programs
-    if (currentThread->space != NULL) {	// if this thread is a user program,
-        currentThread->SaveUserState(); // save the user's CPU registers
+    if (currentThread->space != NULL) {
+        // If this thread is a user program, save the user's CPU registers.
+        currentThread->SaveUserState();
 	currentThread->space->SaveContextOnSwitch();
     }
 #endif
@@ -120,6 +122,8 @@ ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
 
     currentThread = nextThread;		    // switch to the next thread
     currentThread->setStatus(RUNNING);      // nextThread is now running
+
+    currentThread->statistics->setBurstStartTime(stats->totalTicks);
 
     DEBUG('t', "Switching from thread \"%s\" with pid %d to thread \"%s\" with pid %d\n",
 	  oldThread->getName(), oldThread->GetPID(), nextThread->getName(), nextThread->GetPID());
@@ -139,7 +143,7 @@ ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
     // point, we were still running on the old thread's stack!
     if (threadToBeDestroyed != NULL) {
         delete threadToBeDestroyed;
-	threadToBeDestroyed = NULL;
+        threadToBeDestroyed = NULL;
     }
 
 #ifdef USER_PROGRAM
