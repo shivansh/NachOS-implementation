@@ -57,6 +57,9 @@ ProcessScheduler::MoveThreadToReadyQueue (NachOSThread *thread)
 
     thread->setStatus(READY);
     listOfReadyThreads->Append((void *)thread);
+
+    // Mark the end of CPU burst
+    thread->statistics->updateReadyQueueParams(stats->totalTicks);
 }
 
 //----------------------------------------------------------------------
@@ -70,7 +73,15 @@ ProcessScheduler::MoveThreadToReadyQueue (NachOSThread *thread)
 NachOSThread *
 ProcessScheduler::SelectNextReadyThread ()
 {
-    return (NachOSThread *)listOfReadyThreads->Remove();
+    NachOSThread *thread = (NachOSThread *)listOfReadyThreads->Remove();
+
+    if (thread != NULL) {
+        // Mark the start of CPU burst
+        int waitTime = thread->statistics->getWaitTimeAndRun(stats->totalTicks);
+        stats->trackWaitTime(waitTime);
+    }
+
+    return thread;
 }
 
 //----------------------------------------------------------------------
@@ -90,6 +101,7 @@ ProcessScheduler::SelectNextReadyThread ()
 void
 ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
 {
+    int runningTime;
     NachOSThread *oldThread = currentThread;
 
 #ifdef USER_PROGRAM			// ignore until running user programs
@@ -101,6 +113,10 @@ ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
 
     oldThread->CheckOverflow();		    // check if the old thread
 					    // had an undetected stack overflow
+
+    // Mark the end of CPU burst for the oldthread
+    runningTime = oldThread->statistics->getRunningTimeAndSleep(stats->totalTicks);
+    stats->trackCPUBurst(runningTime);
 
     currentThread = nextThread;		    // switch to the next thread
     currentThread->setStatus(RUNNING);      // nextThread is now running

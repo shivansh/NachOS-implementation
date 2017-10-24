@@ -144,13 +144,13 @@ ThreadStatistics::getRunningTimeAndSleep(int currentTime)
 }
 
 //----------------------------------------------------------------------
-// ThreadStatistics::moveToReadyQueue
+// ThreadStatistics::updateReadyQueueParams
 //      Mark the end of current CPU burst when the thread is moved
 //      to the ready queue. Next time when the thread is run,
 //      the WAIT time can be calculated using burstEndTime.
 //----------------------------------------------------------------------
 void
-ThreadStatistics::moveToReadyQueue(int currentTime)
+ThreadStatistics::updateReadyQueueParams(int currentTime)
 {
    setBurstEndTime(currentTime);
 }
@@ -249,6 +249,9 @@ NachOSThread::ThreadFork(VoidFunctionPtr func, int arg)
    scheduler->MoveThreadToReadyQueue(this);	// MoveThreadToReadyQueue assumes that interrupts
    // are disabled!
    (void) interrupt->SetLevel(oldLevel);
+
+   // Mark the start of wait time in ready queue.
+   statistics->setBurstEndTime(stats->totalTicks);
 }
 
 //----------------------------------------------------------------------
@@ -344,10 +347,19 @@ NachOSThread::SetChildExitCode (int childpid, int ecode)
 void
 NachOSThread::Exit (bool terminateSim, int exitcode)
 {
+   int runningTime;
+
    (void) interrupt->SetLevel(IntOff);
    ASSERT(this == currentThread);
 
    DEBUG('t', "Finishing thread \"%s\" with pid %d\n", getName(), pid);
+
+   // Mark the end of CPU burst as well as thread execution.
+   runningTime = statistics->getRunningTimeAndSleep(stats->totalTicks);
+   stats->trackCPUBurst(runningTime);
+   statistics->setThreadEndTime(stats->totalTicks);
+   stats->trackFinishTime(statistics->getThreadStartTime() -
+                          statistics->getThreadEndTime());
 
    threadToBeDestroyed = currentThread;
 
@@ -475,6 +487,9 @@ void ThreadPrint(int arg){ NachOSThread *t = (NachOSThread *)arg; t->Print(); }
 void
 NachOSThread::CreateThreadStack (VoidFunctionPtr func, int arg)
 {
+   // Update thread start time
+   statistics->setThreadStartTime(stats->totalTicks);
+
    stack = (int *) AllocBoundedArray(StackSize * sizeof(int));
 
 #ifdef HOST_SNAKE

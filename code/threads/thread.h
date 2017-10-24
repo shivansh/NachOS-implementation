@@ -86,7 +86,7 @@ class ThreadStatistics {
     	void setBurstEndTime(int);
     	int getWaitTimeAndRun(int);
     	int getRunningTimeAndSleep(int);
-    	void moveToReadyQueue(int);
+    	void updateReadyQueueParams(int);
 };
 
 // The following class defines a "thread control block" -- which
