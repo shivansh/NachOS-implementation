@@ -60,6 +60,7 @@
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
 extern void Print(char *file), PerformanceTest(void);
 extern void LaunchUserProcess(char *file), ConsoleTest(char *in, char *out);
+extern void LaunchBatchOfProcesses(char executables[][128], int *priorities, int batchSize);
 extern void MailTest(int networkID);
 
 //----------------------------------------------------------------------
@@ -162,6 +163,8 @@ main(int argc, char **argv)
 	    	printf("%s %d\n", executables[i], priority[i]);
 
 	    fclose(fp);
+
+	    LaunchBatchOfProcesses(executables, priority, executable_count);
 	}
 
 #endif // USER_PROGRAM

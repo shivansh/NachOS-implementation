@@ -44,6 +44,37 @@ LaunchUserProcess(char *filename)
 					// by doing the syscall "exit"
 }
 
+//----------------------------------------------------------------------
+// LaunchBatchOfProcesses
+// 	Run a batch of user programs. Called by the main thread once.
+//----------------------------------------------------------------------
+void
+LaunchBatchOfProcesses(char executables[][128], int *priorities, int batchSize)
+{
+    NachOSThread *thread;
+    OpenFile *executable;
+    ProcessAddressSpace *space;
+
+    for (int i = 0; i < batchSize; i++) {
+    	executable = fileSystem->Open(executables[i]);
+    	// TODO Handle errors
+
+    	thread = new NachOSThread(executables[i]);
+    	space = new ProcessAddressSpace(executable);
+    	thread->space = space;
+    	space->InitUserModeCPURegisters();
+    	thread->SaveUserState();
+    	thread->CreateThreadStack(ForkStartFunction, 0);
+    	thread->Schedule();
+    }
+
+    // This function is called by the main thread, and since its
+    // work is done, it can exit.
+    exitThreadArray[currentThread->GetPID()] = true;
+    currentThread->FinishThread();
+    machine->Run();
+}
+
 // Data structures needed for the console test.  Threads making
 // I/O requests wait on a Semaphore to delay until the I/O completes.
 

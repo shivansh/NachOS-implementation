@@ -40,14 +40,14 @@ Statistics::Statistics()
 void
 Statistics::trackCPUBurst(int currentBurst)
 {
-    ASSERT(currentBurst > 0);
+    if (currentBurst > 0) {
+	avgCPUBurst = avgCPUBurst*totalCPUBursts + currentBurst;
+	totalCPUBursts++;
+	avgCPUBurst /= totalCPUBursts;
 
-    avgCPUBurst = avgCPUBurst*totalCPUBursts + currentBurst;
-    totalCPUBursts++;
-    avgCPUBurst /= totalCPUBursts;
-
-    maxCPUBurst = max(maxCPUBurst, currentBurst);
-    minCPUBurst = min(minCPUBurst, currentBurst);
+	maxCPUBurst = max(maxCPUBurst, currentBurst);
+	minCPUBurst = min(minCPUBurst, currentBurst);
+    }
 }
 
 //----------------------------------------------------------------------
