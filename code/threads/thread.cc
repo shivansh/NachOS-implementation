@@ -127,7 +127,7 @@ int
 ThreadStatistics::getWaitTimeAndRun(int currentTime)
 {
    setBurstStartTime(currentTime);
-   return currentTime - getBurstEndTime();
+   return currentTime - getWaitStartTime();
 }
 
 //----------------------------------------------------------------------
@@ -146,6 +146,26 @@ ThreadStatistics::getRunningTimeAndSleep(int currentTime)
    setBurstEndTime(currentTime);
 
    return currentCPUBurst;
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::getWaitStartTime
+//      Getter for waitStartTime.
+//----------------------------------------------------------------------
+int
+ThreadStatistics::getWaitStartTime()
+{
+   return waitStartTime;
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::setWaitStartTime
+//      Marks the start of current transition to ready queue.
+//----------------------------------------------------------------------
+void
+ThreadStatistics::setWaitStartTime(int currentTime)
+{
+   waitStartTime = currentTime;
 }
 
 //----------------------------------------------------------------------

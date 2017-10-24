@@ -42,13 +42,13 @@ class Statistics {
     int cpuUtilization; 	// CPU utilization
     int maxCPUBurst; 		// Maximum CPU burst encountered
     int minCPUBurst;		// Minimum CPU burst encountered
-    int avgCPUBurst;		// Average CPU burst
+    double avgCPUBurst;		// Average CPU burst
     int totalCPUBursts; 	// Number of non-zero CPU bursts
-    int avgWaitingTime;		// Average waiting time in the ready queue
+    double avgWaitingTime;	// Average waiting time in the ready queue
     int maxFinishTime;		// Maximum thread completion time
     int minFinishTime; 		// Minimum thread completion time
-    int avgFinishTime; 		// Average thread completion time
-    int varFinishTime; 		// Variance of thread completion times
+    double avgFinishTime; 	// Average thread completion time
+    double varFinishTime; 	// Variance of thread completion times
     int totalCompletions; 	// Total number of exited threads
 
     Statistics(); 		// initialize (nearly) everything to zero

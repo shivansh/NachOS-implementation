@@ -72,7 +72,9 @@ class ThreadStatistics {
     	int threadStartTime; 	// Start time of the thread
     	int threadEndTime; 	// Finish time of the thread
     	int burstStartTime;	// Start time of the current CPU burst
+				// This also acts as 'waitEndTime'.
     	int burstEndTime; 	// Finish time of the current CPU burst
+    	int waitStartTime; 	// Start time of current READY state
 
     public:
     	ThreadStatistics();
@@ -86,7 +88,8 @@ class ThreadStatistics {
     	void setBurstEndTime(int);
     	int getWaitTimeAndRun(int);
     	int getRunningTimeAndSleep(int);
-    	void updateReadyQueueParams(int);
+    	int getWaitStartTime();
+    	void setWaitStartTime(int);
 };
 
 // The following class defines a "thread control block" -- which
