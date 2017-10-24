@@ -363,8 +363,8 @@ NachOSThread::Exit (bool terminateSim, int exitcode)
    runningTime = statistics->getRunningTimeAndSleep(stats->totalTicks);
    stats->trackCPUBurst(runningTime);
    statistics->setThreadEndTime(stats->totalTicks);
-   stats->trackFinishTime(statistics->getThreadStartTime() -
-                          statistics->getThreadEndTime());
+   stats->trackFinishTime(statistics->getThreadEndTime() -
+                          statistics->getThreadStartTime());
 
    threadToBeDestroyed = currentThread;
 
