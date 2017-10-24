@@ -139,8 +139,13 @@ ThreadStatistics::getWaitTimeAndRun(int currentTime)
 int
 ThreadStatistics::getRunningTimeAndSleep(int currentTime)
 {
+   int currentCPUBurst;
+
+   currentCPUBurst = currentTime - getBurstStartTime();
+   stats->cpuBusyTime += currentCPUBurst;
    setBurstEndTime(currentTime);
-   return currentTime - getBurstStartTime();
+
+   return currentCPUBurst;
 }
 
 //----------------------------------------------------------------------
