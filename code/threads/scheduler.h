@@ -13,6 +13,18 @@
 #include "list.h"
 #include "thread.h"
 
+//----------------------------------------------------------------------
+// SchedulingAlgo
+// 	Enum for all supported scheduling algorithms.
+//----------------------------------------------------------------------
+enum SchedulingAlgo {
+    NPtvNachOS = 1, 	 	// Non pre-emptive NachOS algo
+    NPtvShortestNextBurst = 2,	// Non pre-emptive shortest next CPU burst first
+    PtvRoundRobin = 3,   	// Pre-emptive fixed quantum round robin
+    PtvPrioritySched = 4 	// Unix like pre-emptive priority scheduling
+};
+
+
 // The following class defines the scheduler/dispatcher abstraction --
 // the data structures and operations needed to keep track of which
 // thread is running, and which threads are ready but not running.
@@ -27,26 +39,16 @@ class ProcessScheduler {
 	// list, if any, and return thread.
 	NachOSThread* SelectNextReadyThread();
 	void ScheduleThread(NachOSThread* nextThread);	// Cause nextThread to start running
-	void Print();		// Print contents of ready list
+	void Print();		   // Print contents of ready list
 
-	void Tail();            // Used by fork()
+	void Tail();		   // Used by fork()
+
+	SchedulingAlgo schedAlgo;  // Selected scheduling algorithm
 
     private:
 	// queue of threads that are ready to run,
 	// but not running
 	List *listOfReadyThreads;
-};
-
-
-//----------------------------------------------------------------------
-// SchedulingAlgo
-// 	Enum for all supported scheduling algorithms.
-//----------------------------------------------------------------------
-enum SchedulingAlgo {
-    NPtvNachOS = 1, 	 	// Non pre-emptive NachOS algo
-    NPtvShortestNextBurst = 2,	// Non pre-emptive shortest next CPU burst first
-    PtvRoundRobin = 3,   	// Pre-emptive fixed quantum round robin
-    PtvPrioritySched = 4 	// Unix like pre-emptive priority scheduling
 };
 
 #endif // SCHEDULER_H

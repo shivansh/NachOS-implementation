@@ -77,8 +77,14 @@ TimerInterruptHandler(int dummy)
            delete ptr;
         }
         //printf("[%d] Timer interrupt.\n", stats->totalTicks);
-        // interrupt->YieldOnReturn();
     }
+
+#ifdef USER_PROGRAM
+    if (scheduler->schedAlgo > 2)
+	interrupt->YieldOnReturn();
+#else
+    interrupt->YieldOnReturn();
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -158,8 +164,14 @@ Initialize(int argc, char **argv)
     stats = new Statistics();			// collect statistics
     interrupt = new Interrupt;			// start up interrupt handling
     scheduler = new ProcessScheduler();		// initialize the ready queue
-    //if (randomYield)				// start the timer (if needed)
-	timer = new Timer(TimerInterruptHandler, 0, randomYield);
+
+    // Start the timer in any case. If using a non-preemptive scheduling algorithm,
+    // the effect of timer interrupt is nullified by not calling YieldOnReturn()
+    // while inside TimerInterruptHandler.
+    timer = new Timer(TimerInterruptHandler, 0, randomYield);
+
+    // if (randomYield)				// start the timer (if needed)
+    //     timer = new Timer(TimerInterruptHandler, 0, randomYield);
 
     threadToBeDestroyed = NULL;
 

@@ -91,7 +91,6 @@ main(int argc, char **argv)
     size_t len = 0;
     ssize_t read = 0;
     int sched_algo_number;
-    SchedulingAlgo sched_algo;
 
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
@@ -134,7 +133,7 @@ main(int argc, char **argv)
 		    fprintf(stderr, "Bad scheduling algorithm number\n");
 		    return 1;
 		}
-		sched_algo = static_cast<SchedulingAlgo>(sched_algo_number);
+		scheduler->schedAlgo = static_cast<SchedulingAlgo>(sched_algo_number);
 	    }
 
 	    while ((read = getline(&line, &len, fp)) != -1) {

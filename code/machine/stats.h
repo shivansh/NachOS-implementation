@@ -37,7 +37,7 @@ class Statistics {
     int numPacketsRecvd;	// number of packets received over the network
 
     int simulationStartTime; 	// Time when simulation of batch file started
-    int batchSize;
+    int batchSize; 		// Number of executables in batch file
     int cpuBusyTime; 		// Total CPU busy time
     int cpuUtilization; 	// CPU utilization
     int maxCPUBurst; 		// Maximum CPU burst encountered
