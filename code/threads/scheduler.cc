@@ -57,7 +57,17 @@ ProcessScheduler::MoveThreadToReadyQueue (NachOSThread *thread)
 
     thread->setStatus(READY);
     thread->statistics->setWaitStartTime(stats->totalTicks);
+
+#ifdef USER_PROGRAM
+    if (schedAlgo == 2)
+        listOfReadyThreads->SortedInsert(thread,
+                                         thread->statistics->getExpectedCPUBurst());
+    else
+        listOfReadyThreads->Append((void *)thread);
+#else
     listOfReadyThreads->Append((void *)thread);
+#endif
+
 }
 
 //----------------------------------------------------------------------

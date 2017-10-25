@@ -35,6 +35,12 @@ ThreadStatistics::ThreadStatistics()
    setThreadEndTime(0);
    setBurstStartTime(0);
    setBurstEndTime(stats->totalTicks);
+   // We need to start with a guess for the initial expected CPU burst.
+   // We start off with setting it to the average value of CPU bursts
+   // measured when using the non-preemptive NachOS algorithm.
+   // NOTE: Any value can be chosen as it will have little effect in
+   // the long run.
+   setExpectedCPUBurst(200);    // FIXME
 }
 
 //----------------------------------------------------------------------
@@ -118,6 +124,26 @@ ThreadStatistics::setBurstEndTime(int _burstEndTime)
 }
 
 //----------------------------------------------------------------------
+// ThreadStatistics::getExpectedCPUBurst
+//      Getter for expectedCPUBurst.
+//----------------------------------------------------------------------
+int
+ThreadStatistics::getExpectedCPUBurst()
+{
+   return expectedCPUBurst;
+}
+
+//----------------------------------------------------------------------
+// ThreadStatistics::setExpectedCPUBurst
+//      Setter for expectedCPUBurst.
+//----------------------------------------------------------------------
+void
+ThreadStatistics::setExpectedCPUBurst(int _expectedCPUBurst)
+{
+   expectedCPUBurst = _expectedCPUBurst;
+}
+
+//----------------------------------------------------------------------
 // ThreadStatistics::getWaitTimeAndRun
 //      Returns the waiting time of the thread in the ready queue
 //      before it starts running. As the thread is now transitioning
@@ -140,10 +166,18 @@ int
 ThreadStatistics::getRunningTimeAndSleep(int currentTime)
 {
    int currentCPUBurst;
+   int nextCPUBurst;    // Expected CPU burst evaluated by the estimation algo
+   int a = 0.5;
 
    currentCPUBurst = currentTime - getBurstStartTime();
    stats->cpuBusyTime += currentCPUBurst;
    setBurstEndTime(currentTime);
+
+   // Estimate the next CPU burst for the SJF algorithm.
+   // NOTE: getExpectedCPUBurst() will return the previously
+   // estimated expected CPU burst.
+   nextCPUBurst = a*currentCPUBurst + (1-a)*getExpectedCPUBurst();
+   setExpectedCPUBurst(nextCPUBurst);
 
    return currentCPUBurst;
 }
@@ -639,8 +673,8 @@ void
 NachOSThread::Schedule()
 {
    IntStatus oldLevel = interrupt->SetLevel(IntOff);
-   scheduler->MoveThreadToReadyQueue(this);        // MoveThreadToReadyQueue assumes that interrupts
-   // are disabled!
+   // Assumes interrupts are disabled.
+   scheduler->MoveThreadToReadyQueue(this);        // MoveThreadToReadyQueue
    (void) interrupt->SetLevel(oldLevel);
 }
 
