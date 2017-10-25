@@ -40,6 +40,9 @@ ThreadStatistics::ThreadStatistics()
    // NOTE: Any value can be chosen as it will have little effect in
    // the long run.
    setExpectedCPUBurst(200);    // FIXME
+
+   basePriority = 50;
+   UNIXPriority = 0;
 }
 
 //----------------------------------------------------------------------
@@ -383,6 +386,12 @@ NachOSThread::Exit (bool terminateSim, int exitcode)
    stats->trackFinishTime(statistics->getThreadEndTime() -
                           statistics->getThreadStartTime());
 
+   if (scheduler->schedAlgo > 6) {
+      // Update UNIX priority.
+      statistics->UNIXCPUBurst += runningTime;
+      updateUNIXPriorities();
+   }
+
    threadToBeDestroyed = currentThread;
 
    NachOSThread *nextThread;
@@ -438,9 +447,15 @@ NachOSThread::YieldCPU ()
 
    DEBUG('t', "Yielding thread \"%s\" with pid %d\n", getName(), pid);
 
-   // Mark the end of CPU burst
+   // Mark the end of CPU burst.
    runningTime = statistics->getRunningTimeAndSleep(stats->totalTicks);
    stats->trackCPUBurst(runningTime);
+
+   if (scheduler->schedAlgo > 6) {
+      // Update UNIX priority.
+      statistics->UNIXCPUBurst += runningTime;
+      updateUNIXPriorities();
+   }
 
    nextThread = scheduler->SelectNextReadyThread();
    if (nextThread != NULL) {
@@ -482,9 +497,15 @@ NachOSThread::PutThreadToSleep ()
 
    status = BLOCKED;
 
-   // Mark the end of CPU burst
+   // Mark the end of CPU burst.
    runningTime = statistics->getRunningTimeAndSleep(stats->totalTicks);
    stats->trackCPUBurst(runningTime);
+
+   if (scheduler->schedAlgo > 6) {
+      // Update UNIX priority.
+      statistics->UNIXCPUBurst += runningTime;
+      updateUNIXPriorities();
+   }
 
    while ((nextThread = scheduler->SelectNextReadyThread()) == NULL)
       interrupt->Idle();	// no one to run, wait for an interrupt
@@ -742,4 +763,16 @@ unsigned
 NachOSThread::GetInstructionCount (void)
 {
    return instructionCount;
+}
+
+void
+NachOSThread::updateUNIXPriorities()
+{
+   for (int i = 0; i < thread_index; i++) {
+      if (!exitThreadArray[i]) {
+         threadArray[i]->statistics->UNIXCPUBurst >> 1;
+         threadArray[i]->statistics->UNIXPriority = threadArray[i]->statistics->basePriority
+                                      + (threadArray[i]->statistics->UNIXCPUBurst/2);
+      }
+   }
 }

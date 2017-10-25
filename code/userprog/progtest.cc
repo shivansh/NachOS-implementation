@@ -66,6 +66,8 @@ LaunchBatchOfProcesses(char executables[][128], int *priorities, int batchSize)
     	thread->SaveUserState();
     	thread->CreateThreadStack(ForkStartFunction, 0);
     	thread->Schedule();
+    	thread->statistics->basePriority += priorities[i];
+    	thread->statistics->UNIXPriority = thread->statistics->basePriority;
     }
 
     // This function is called by the main thread, and since its

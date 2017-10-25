@@ -77,6 +77,10 @@ class ThreadStatistics {
     	int waitStartTime; 	// Start time of current READY state
 
     public:
+    	int basePriority;
+    	int UNIXPriority;
+    	int UNIXCPUBurst;
+
     	ThreadStatistics();
     	int getThreadStartTime();
     	void setThreadStartTime(int);
@@ -163,6 +167,8 @@ class NachOSThread {
 	void IncInstructionCount();
 	unsigned GetInstructionCount();
 	ThreadStatistics *statistics;
+
+    	void updateUNIXPriorities();
 
     private:
 	// some of the private data for this class is listed above
