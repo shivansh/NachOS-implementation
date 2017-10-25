@@ -20,8 +20,14 @@
 enum SchedulingAlgo {
     NPtvNachOS = 1, 	 	// Non pre-emptive NachOS algo
     NPtvShortestNextBurst = 2,	// Non pre-emptive shortest next CPU burst first
-    PtvRoundRobin = 3,   	// Pre-emptive fixed quantum round robin
-    PtvPrioritySched = 4 	// Unix like pre-emptive priority scheduling
+    PtvRoundRobin1 = 3,   	// Pre-emptive fixed quantum round robin
+    PtvRoundRobin2 = 4,		// 		Using 1/4th quanta
+    PtvRoundRobin3 = 5,		// 		Using 1/2th quanta
+    PtvRoundRobin4 = 6,		// 		Using 3/4th quanta
+    PtvPrioritySched1 = 7, 	// Unix like pre-emptive priority scheduling
+    PtvPrioritySched2 = 8,	// 		Using 1/4th quanta
+    PtvPrioritySched3 = 9,      // 		Using 1/2th quanta
+    PtvPrioritySched4 = 10      // 		Using 3/4th quanta
 };
 
 
