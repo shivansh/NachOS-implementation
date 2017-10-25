@@ -80,7 +80,9 @@ TimerInterruptHandler(int dummy)
     }
 
 #ifdef USER_PROGRAM
-    if (scheduler->schedAlgo > 2)
+    if (scheduler->schedAlgo > 2 &&
+    	stats->totalTicks - currentThread->statistics->getBurstStartTime() >=
+			    stats->timerInterruptTicks)
 	interrupt->YieldOnReturn();
 #else
     interrupt->YieldOnReturn();

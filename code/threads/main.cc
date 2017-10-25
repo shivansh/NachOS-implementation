@@ -129,7 +129,7 @@ main(int argc, char **argv)
 
 	    if (read = getline(&line, &len, fp) != -1) {
 		sched_algo_number = (int)atoi(line);
-		if (sched_algo_number < 1 || sched_algo_number > 4) {
+		if (sched_algo_number < 1 || sched_algo_number > 10) {
 		    fprintf(stderr, "Bad scheduling algorithm number\n");
 		    return 1;
 		}
@@ -162,6 +162,33 @@ main(int argc, char **argv)
 	    	printf("%s %d\n", executables[i], priority[i]);
 
 	    fclose(fp);
+
+	    switch(sched_algo_number) {
+		case 3:
+		    stats->timerInterruptTicks = (124.0/4);
+		    break;
+		case 4:
+		    stats->timerInterruptTicks = (124.0/2);
+		    break;
+		case 5:
+		    stats->timerInterruptTicks = 124.0 * (3.0/4);
+		    break;
+		case 6:
+		    break;
+		case 7:
+		    stats->timerInterruptTicks = (124.0/4);
+		    break;
+		case 8:
+		    stats->timerInterruptTicks = (124.0/2);
+		    break;
+		case 9:
+		    stats->timerInterruptTicks = 124.0 * (3.0/4);
+		    break;
+		case 10:
+		    break;
+		default:
+		    break;
+	    }
 
 	    executableCount = executable_count;
 	    LaunchBatchOfProcesses(executables, priority, executable_count);
