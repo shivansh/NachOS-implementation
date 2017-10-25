@@ -101,7 +101,6 @@ ProcessScheduler::SelectNextReadyThread ()
 void
 ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
 {
-    int runningTime;
     int waitTime;
     NachOSThread *oldThread = currentThread;
 
@@ -115,10 +114,6 @@ ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
 
     oldThread->CheckOverflow();		    // check if the old thread
     // had an undetected stack overflow
-
-    // Mark the end of CPU burst for the oldthread
-    runningTime = oldThread->statistics->getRunningTimeAndSleep(stats->totalTicks);
-    stats->trackCPUBurst(runningTime);
 
     currentThread = nextThread;		    // switch to the next thread
     currentThread->setStatus(RUNNING);      // nextThread is now running

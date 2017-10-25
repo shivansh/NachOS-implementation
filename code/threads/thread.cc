@@ -430,12 +430,17 @@ NachOSThread::Exit (bool terminateSim, int exitcode)
 void
 NachOSThread::YieldCPU ()
 {
+   int runningTime;
    NachOSThread *nextThread;
    IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
    ASSERT(this == currentThread);
 
    DEBUG('t', "Yielding thread \"%s\" with pid %d\n", getName(), pid);
+
+   // Mark the end of CPU burst
+   runningTime = statistics->getRunningTimeAndSleep(stats->totalTicks);
+   stats->trackCPUBurst(runningTime);
 
    nextThread = scheduler->SelectNextReadyThread();
    if (nextThread != NULL) {
@@ -467,6 +472,7 @@ NachOSThread::YieldCPU ()
 void
 NachOSThread::PutThreadToSleep ()
 {
+   int runningTime;
    NachOSThread *nextThread;
 
    ASSERT(this == currentThread);
@@ -475,6 +481,10 @@ NachOSThread::PutThreadToSleep ()
    DEBUG('t', "Sleeping thread \"%s\" with pid %d\n", getName(), pid);
 
    status = BLOCKED;
+
+   // Mark the end of CPU burst
+   runningTime = statistics->getRunningTimeAndSleep(stats->totalTicks);
+   stats->trackCPUBurst(runningTime);
 
    while ((nextThread = scheduler->SelectNextReadyThread()) == NULL)
       interrupt->Idle();	// no one to run, wait for an interrupt
