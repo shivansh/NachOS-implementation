@@ -73,7 +73,6 @@ class ThreadStatistics {
     	int threadEndTime; 	// Finish time of the thread
     	int burstStartTime;	// Start time of the current CPU burst
 				// This also acts as 'waitEndTime'.
-    	int burstEndTime; 	// Finish time of the current CPU burst
 	int expectedCPUBurst;	// Expected CPU burst for the next run
     	int waitStartTime; 	// Start time of current READY state
 
@@ -85,8 +84,6 @@ class ThreadStatistics {
     	void setThreadEndTime(int);
     	int getBurstStartTime();
     	void setBurstStartTime(int);
-    	int getBurstEndTime();
-    	void setBurstEndTime(int);
     	int getExpectedCPUBurst();
     	void setExpectedCPUBurst(int);
     	int getWaitTimeAndRun(int);

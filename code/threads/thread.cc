@@ -34,7 +34,6 @@ ThreadStatistics::ThreadStatistics()
    setThreadStartTime(stats->totalTicks);
    setThreadEndTime(0);
    setBurstStartTime(0);
-   setBurstEndTime(stats->totalTicks);
    // We need to start with a guess for the initial expected CPU burst.
    // We start off with setting it to the average value of CPU bursts
    // measured when using the non-preemptive NachOS algorithm.
@@ -104,26 +103,6 @@ ThreadStatistics::setBurstStartTime(int _burstStartTime)
 }
 
 //----------------------------------------------------------------------
-// ThreadStatistics::getBurstEndTime
-//      Getter for burstEndTime.
-//----------------------------------------------------------------------
-int
-ThreadStatistics::getBurstEndTime()
-{
-   return burstEndTime;
-}
-
-//----------------------------------------------------------------------
-// ThreadStatistics::setBurstEndTime
-//      Setter for burstEndTime.
-//----------------------------------------------------------------------
-void
-ThreadStatistics::setBurstEndTime(int _burstEndTime)
-{
-   burstEndTime = _burstEndTime;
-}
-
-//----------------------------------------------------------------------
 // ThreadStatistics::getExpectedCPUBurst
 //      Getter for expectedCPUBurst.
 //----------------------------------------------------------------------
@@ -171,7 +150,6 @@ ThreadStatistics::getRunningTimeAndSleep(int currentTime)
 
    currentCPUBurst = currentTime - getBurstStartTime();
    stats->cpuBusyTime += currentCPUBurst;
-   setBurstEndTime(currentTime);
 
    // Estimate the next CPU burst for the SJF algorithm.
    // NOTE: getExpectedCPUBurst() will return the previously
@@ -296,9 +274,6 @@ NachOSThread::ThreadFork(VoidFunctionPtr func, int arg)
    scheduler->MoveThreadToReadyQueue(this);	// MoveThreadToReadyQueue assumes that interrupts
    // are disabled!
    (void) interrupt->SetLevel(oldLevel);
-
-   // Mark the start of wait time in ready queue.
-   statistics->setBurstEndTime(stats->totalTicks);
 }
 
 //----------------------------------------------------------------------
