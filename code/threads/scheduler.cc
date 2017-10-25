@@ -99,12 +99,12 @@ ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
     if (currentThread->space != NULL) {
         // If this thread is a user program, save the user's CPU registers.
         currentThread->SaveUserState();
-	currentThread->space->SaveContextOnSwitch();
+        currentThread->space->SaveContextOnSwitch();
     }
 #endif
 
     oldThread->CheckOverflow();		    // check if the old thread
-					    // had an undetected stack overflow
+    // had an undetected stack overflow
 
     // Mark the end of CPU burst for the oldthread
     runningTime = oldThread->statistics->getRunningTimeAndSleep(stats->totalTicks);
@@ -119,7 +119,7 @@ ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
     currentThread->statistics->setBurstStartTime(stats->totalTicks);
 
     DEBUG('t', "Switching from thread \"%s\" with pid %d to thread \"%s\" with pid %d\n",
-	  oldThread->getName(), oldThread->GetPID(), nextThread->getName(), nextThread->GetPID());
+            oldThread->getName(), oldThread->GetPID(), nextThread->getName(), nextThread->GetPID());
 
     // This is a machine-dependent assembly language routine defined
     // in switch.s.  You may have to think
@@ -142,7 +142,7 @@ ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
 #ifdef USER_PROGRAM
     if (currentThread->space != NULL) {		// if there is an address space
         currentThread->RestoreUserState();     // to restore, do it.
-	currentThread->space->RestoreContextOnSwitch();
+        currentThread->space->RestoreContextOnSwitch();
     }
 #endif
 }
