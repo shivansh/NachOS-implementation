@@ -174,7 +174,7 @@ main(int argc, char **argv)
 		    stats->timerInterruptTicks = 124.0 * (3.0/4);
 		    break;
 		case 6:
-		    stats->timerInterruptTicks = 100;
+		    stats->timerInterruptTicks = 20;
 		    break;
 		case 7:
 		    stats->timerInterruptTicks = (124.0/4);
@@ -186,7 +186,7 @@ main(int argc, char **argv)
 		    stats->timerInterruptTicks = 124.0 * (3.0/4);
 		    break;
 		case 10:
-		    stats->timerInterruptTicks = 100;
+		    stats->timerInterruptTicks = 20;
 		    break;
 		default:
 		    break;
