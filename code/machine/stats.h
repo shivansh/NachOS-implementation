@@ -49,13 +49,17 @@ class Statistics {
     int maxFinishTime;		// Maximum thread completion time
     int minFinishTime; 		// Minimum thread completion time
     float avgFinishTime; 	// Average thread completion time
-    float varFinishTime; 	// Variance of thread completion times
+    float varianceFinishTimes; 	// Variance of thread completion times
     int totalCompletions; 	// Total number of exited threads
+    // TODO: Update the hardcoded size of array to reflect
+    // total number of scheduled threads.
+    int finishTimeArray[128];	// Array to store finish times
 
     Statistics(); 		// initialize (nearly) everything to zero
     void trackCPUBurst(int);
     void trackWaitTime(int);
     void trackFinishTime(int);
+    int evaluateVariance();
     void Print();		// print collected statistics
 };
 

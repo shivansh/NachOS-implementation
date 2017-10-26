@@ -30,7 +30,7 @@ Statistics::Statistics()
     maxCPUBurst = maxFinishTime = INT_MIN;
     minCPUBurst = minFinishTime = INT_MAX;
     avgCPUBurst = totalCPUBursts = avgWaitingTime = avgFinishTime = 0;
-    varFinishTime = 0;
+    varianceFinishTimes = 0;
     timerInterruptTicks = 100;
 }
 
@@ -67,14 +67,31 @@ Statistics::trackWaitTime(int currentWaitTime)
 void
 Statistics::trackFinishTime(int currentFinishTime)
 {
+    finishTimeArray[totalCompletions] = currentFinishTime;
     avgFinishTime = avgFinishTime*totalCompletions + currentFinishTime;
     totalCompletions++;
     avgFinishTime /= totalCompletions;
 
     maxFinishTime = max(maxFinishTime, currentFinishTime);
     minFinishTime = min(minFinishTime, currentFinishTime);
+}
 
-    // TODO Calculate variance
+//----------------------------------------------------------------------
+// Statistics::evaluateVariance
+// 	Evaluate variance of thread completion times.
+//----------------------------------------------------------------------
+int
+Statistics::evaluateVariance()
+{
+    int varianceFinishTimes;
+
+    // Evaluate variance of thread completion times.
+    for (int index = 0; index < 10; index++)
+        varianceFinishTimes += (finishTimeArray[index]-avgFinishTime)
+			     * (finishTimeArray[index]-avgFinishTime);
+
+    varianceFinishTimes /= totalCompletions;
+    return varianceFinishTimes;
 }
 
 //----------------------------------------------------------------------
@@ -109,5 +126,5 @@ Statistics::Print()
     printf("Maximum thread completion time: %d\n", maxFinishTime);
     printf("Minimum thread completion time: %d\n", minFinishTime);
     printf("Average thread completion time: %f\n", avgFinishTime);
-    printf("Variance of thread completion times: %f\n", varFinishTime);
+    printf("Variance of thread completion times: %f\n", evaluateVariance());
 }
