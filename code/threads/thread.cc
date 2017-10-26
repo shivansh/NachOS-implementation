@@ -39,7 +39,7 @@ ThreadStatistics::ThreadStatistics()
    // measured when using the non-preemptive NachOS algorithm.
    // NOTE: Any value can be chosen as it will have little effect in
    // the long run.
-   setExpectedCPUBurst(124);    // FIXME
+   setExpectedCPUBurst(10);    // FIXME
 }
 
 //----------------------------------------------------------------------
