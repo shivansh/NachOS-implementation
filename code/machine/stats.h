@@ -45,6 +45,7 @@ class Statistics {
     int minCPUBurst;		// Minimum CPU burst encountered
     float avgCPUBurst;		// Average CPU burst
     int totalCPUBursts; 	// Number of non-zero CPU bursts
+    float errorCPUBurst; 	// Error in CPU burst estimation
     float avgWaitingTime;	// Average waiting time in the ready queue
     int maxFinishTime;		// Maximum thread completion time
     int minFinishTime; 		// Minimum thread completion time

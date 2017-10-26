@@ -39,7 +39,7 @@ ThreadStatistics::ThreadStatistics()
    // measured when using the non-preemptive NachOS algorithm.
    // NOTE: Any value can be chosen as it will have little effect in
    // the long run.
-   setExpectedCPUBurst(200);    // FIXME
+   setExpectedCPUBurst(124);    // FIXME
 }
 
 //----------------------------------------------------------------------
@@ -150,6 +150,7 @@ ThreadStatistics::getRunningTimeAndSleep(int currentTime)
 
    currentCPUBurst = currentTime - getBurstStartTime();
    stats->cpuBusyTime += currentCPUBurst;
+   stats->errorCPUBurst += abs(currentCPUBurst - getExpectedCPUBurst());
 
    // Estimate the next CPU burst for the SJF algorithm.
    // NOTE: getExpectedCPUBurst() will return the previously

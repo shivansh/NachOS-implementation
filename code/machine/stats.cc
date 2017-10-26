@@ -31,6 +31,7 @@ Statistics::Statistics()
     minCPUBurst = minFinishTime = INT_MAX;
     avgCPUBurst = totalCPUBursts = avgWaitingTime = avgFinishTime = 0;
     timerInterruptTicks = 100;
+    errorCPUBurst = 0;
 }
 
 //----------------------------------------------------------------------
@@ -120,6 +121,7 @@ Statistics::Print()
     printf("Maximum CPU burst: %d\n", maxCPUBurst);
     printf("Minimum CPU burst: %d\n", minCPUBurst);
     printf("Average CPU burst: %f\n", avgCPUBurst);
+    printf("Error in CPU burst estimation: %f\n", errorCPUBurst / totalCPUBursts);
     printf("Number of non-zero CPU bursts: %d\n", totalCPUBursts);
     printf("Average waiting time in ready queue: %f\n", avgWaitingTime);
     printf("Maximum thread completion time: %d\n", maxFinishTime);
