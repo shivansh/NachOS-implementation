@@ -146,7 +146,6 @@ ThreadStatistics::getRunningTimeAndSleep(int currentTime)
 {
    int currentCPUBurst;
    int nextCPUBurst;    // Expected CPU burst evaluated by the estimation algo
-   int a = 0.5;
 
    currentCPUBurst = currentTime - getBurstStartTime();
    stats->cpuBusyTime += currentCPUBurst;
@@ -157,7 +156,7 @@ ThreadStatistics::getRunningTimeAndSleep(int currentTime)
    // Estimate the next CPU burst for the SJF algorithm.
    // NOTE: getExpectedCPUBurst() will return the previously
    // estimated expected CPU burst.
-   nextCPUBurst = a*currentCPUBurst + (1-a)*getExpectedCPUBurst();
+   nextCPUBurst = stats->a*currentCPUBurst + (1-stats->a)*getExpectedCPUBurst();
    setExpectedCPUBurst(nextCPUBurst);
 
    return currentCPUBurst;

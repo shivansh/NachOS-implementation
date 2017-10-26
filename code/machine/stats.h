@@ -54,6 +54,7 @@ class Statistics {
     // TODO: Update the hardcoded size of array to reflect
     // total number of scheduled threads.
     int finishTimeArray[128];	// Array to store finish times
+    int a; 			// Estimation parameter in SJF
 
     Statistics(); 		// initialize (nearly) everything to zero
     void trackCPUBurst(int);

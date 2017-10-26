@@ -32,6 +32,7 @@ Statistics::Statistics()
     avgCPUBurst = totalCPUBursts = avgWaitingTime = avgFinishTime = 0;
     timerInterruptTicks = 100;
     errorCPUBurst = 0;
+    a = 0.5;
 }
 
 //----------------------------------------------------------------------
