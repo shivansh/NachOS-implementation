@@ -77,10 +77,6 @@ class ThreadStatistics {
     	int waitStartTime; 	// Start time of current READY state
 
     public:
-    	int basePriority;
-    	int UNIXPriority;
-    	int UNIXCPUBurst;
-
     	ThreadStatistics();
     	int getThreadStartTime();
     	void setThreadStartTime(int);
@@ -168,6 +164,10 @@ class NachOSThread {
 	unsigned GetInstructionCount();
 	ThreadStatistics *statistics;
 
+    	int basePriority;
+    	int UNIXPriority;
+    	int UNIXCPUBurst;
+
     	void updateUNIXPriorities();
 
     private:
@@ -202,7 +202,6 @@ class NachOSThread {
 	void SaveUserState();		// save user-level register state
 	void RestoreUserState();		// restore user-level register state
 	void ResetReturnValue ();                           // Used by SysCall_Fork to set the return value of child to zero
-
 	ProcessAddressSpace *space;			// User code this thread is running.
 #endif
 };

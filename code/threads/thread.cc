@@ -40,9 +40,6 @@ ThreadStatistics::ThreadStatistics()
    // NOTE: Any value can be chosen as it will have little effect in
    // the long run.
    setExpectedCPUBurst(200);    // FIXME
-
-   basePriority = 50;
-   UNIXPriority = 0;
 }
 
 //----------------------------------------------------------------------
@@ -221,6 +218,8 @@ NachOSThread::NachOSThread(char* threadName)
 
    instructionCount = 0;
 
+   basePriority = 50;
+   UNIXPriority = 0;
    statistics = new ThreadStatistics();
 }
 
@@ -388,7 +387,7 @@ NachOSThread::Exit (bool terminateSim, int exitcode)
 
    if (scheduler->schedAlgo > 6) {
       // Update UNIX priority.
-      statistics->UNIXCPUBurst += runningTime;
+      UNIXCPUBurst += runningTime;
       updateUNIXPriorities();
    }
 
@@ -453,7 +452,7 @@ NachOSThread::YieldCPU ()
 
    if (scheduler->schedAlgo > 6) {
       // Update UNIX priority.
-      statistics->UNIXCPUBurst += runningTime;
+      UNIXCPUBurst += runningTime;
       updateUNIXPriorities();
    }
 
@@ -503,7 +502,7 @@ NachOSThread::PutThreadToSleep ()
 
    if (scheduler->schedAlgo > 6) {
       // Update UNIX priority.
-      statistics->UNIXCPUBurst += runningTime;
+      UNIXCPUBurst += runningTime;
       updateUNIXPriorities();
    }
 
@@ -770,9 +769,9 @@ NachOSThread::updateUNIXPriorities()
 {
    for (int i = 0; i < thread_index; i++) {
       if (!exitThreadArray[i]) {
-         threadArray[i]->statistics->UNIXCPUBurst >> 1;
-         threadArray[i]->statistics->UNIXPriority = threadArray[i]->statistics->basePriority
-                                      + (threadArray[i]->statistics->UNIXCPUBurst/2);
+         threadArray[i]->UNIXCPUBurst >> 1;
+         threadArray[i]->UNIXPriority = threadArray[i]->basePriority
+                                      + (threadArray[i]->UNIXCPUBurst/2);
       }
    }
 }

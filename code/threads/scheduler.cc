@@ -64,7 +64,7 @@ ProcessScheduler::MoveThreadToReadyQueue (NachOSThread *thread)
                                          thread->statistics->getExpectedCPUBurst());
     else if (schedAlgo > 6)
         listOfReadyThreads->SortedInsert(thread,
-                                         thread->statistics->UNIXPriority);
+                                         thread->UNIXPriority);
     else
         listOfReadyThreads->Append((void *)thread);
 #else
