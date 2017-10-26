@@ -30,7 +30,6 @@ Statistics::Statistics()
     maxCPUBurst = maxFinishTime = INT_MIN;
     minCPUBurst = minFinishTime = INT_MAX;
     avgCPUBurst = totalCPUBursts = avgWaitingTime = avgFinishTime = 0;
-    varianceFinishTimes = 0;
     timerInterruptTicks = 100;
 }
 
@@ -80,10 +79,10 @@ Statistics::trackFinishTime(int currentFinishTime)
 // Statistics::evaluateVariance
 // 	Evaluate variance of thread completion times.
 //----------------------------------------------------------------------
-int
+float
 Statistics::evaluateVariance()
 {
-    int varianceFinishTimes;
+    float varianceFinishTimes = 0;
 
     // Evaluate variance of thread completion times.
     for (int index = 0; index < 10; index++)
