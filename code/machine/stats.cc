@@ -42,6 +42,7 @@ Statistics::Statistics()
 void
 Statistics::trackCPUBurst(int currentBurst)
 {
+#ifdef USER_PROGRAM
     if (currentBurst > 0) {
 	avgCPUBurst = avgCPUBurst*totalCPUBursts + currentBurst;
 	totalCPUBursts++;
@@ -50,6 +51,7 @@ Statistics::trackCPUBurst(int currentBurst)
 	maxCPUBurst = max(maxCPUBurst, currentBurst);
 	minCPUBurst = min(minCPUBurst, currentBurst);
     }
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -116,9 +118,12 @@ Statistics::Print()
     printf("\n------------------"
 	   "\n Statistical Data"
 	   "\n------------------\n\n");
-    printf("Total CPU busy time: %d\n", cpuBusyTime);
+    printf("Total CPU busy time: %d\n", systemTicks+userTicks);
     printf("Total execution time: %d\n", totalTicks - simulationStartTime);
-    printf("CPU utilization: %f\n", cpuBusyTime*1.0 / (totalTicks-simulationStartTime));
+
+    // NOTE: (systemTicks+userTicks) can be replaced by the variable
+    // 'avgCPUBurst' which is updated at the end of each CPU burst.
+    printf("CPU utilization: %f\n", (systemTicks+userTicks)*1.0 / (totalTicks-simulationStartTime));
     printf("Maximum CPU burst: %d\n", maxCPUBurst);
     printf("Minimum CPU burst: %d\n", minCPUBurst);
     printf("Average CPU burst: %f\n", avgCPUBurst);

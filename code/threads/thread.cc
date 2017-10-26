@@ -152,6 +152,7 @@ ThreadStatistics::getRunningTimeAndSleep(int currentTime)
 
    if (scheduler->schedAlgo == 2) {
       stats->errorCPUBurst += abs(currentCPUBurst - getExpectedCPUBurst());
+
       // Estimate the next CPU burst for the SJF algorithm.
       // NOTE: getExpectedCPUBurst() will return the previously
       // estimated expected CPU burst.
@@ -380,6 +381,7 @@ NachOSThread::Exit (bool terminateSim, int exitcode)
 
    DEBUG('t', "Finishing thread \"%s\" with pid %d\n", getName(), pid);
 
+#ifdef USER_PROGRAM
    // Mark the end of CPU burst as well as thread execution.
    runningTime = statistics->getRunningTimeAndSleep(stats->totalTicks);
    stats->trackCPUBurst(runningTime);
@@ -392,6 +394,7 @@ NachOSThread::Exit (bool terminateSim, int exitcode)
       UNIXCPUBurst += runningTime;
       updateUNIXPriorities();
    }
+#endif
 
    threadToBeDestroyed = currentThread;
 
@@ -448,6 +451,7 @@ NachOSThread::YieldCPU ()
 
    DEBUG('t', "Yielding thread \"%s\" with pid %d\n", getName(), pid);
 
+#ifdef USER_PROGRAM
    // Mark the end of CPU burst.
    runningTime = statistics->getRunningTimeAndSleep(stats->totalTicks);
    stats->trackCPUBurst(runningTime);
@@ -457,6 +461,7 @@ NachOSThread::YieldCPU ()
       UNIXCPUBurst += runningTime;
       updateUNIXPriorities();
    }
+#endif
 
    nextThread = scheduler->SelectNextReadyThread();
    if (nextThread != NULL) {
@@ -498,6 +503,7 @@ NachOSThread::PutThreadToSleep ()
 
    status = BLOCKED;
 
+#ifdef USER_PROGRAM
    // Mark the end of CPU burst.
    runningTime = statistics->getRunningTimeAndSleep(stats->totalTicks);
    stats->trackCPUBurst(runningTime);
@@ -507,6 +513,7 @@ NachOSThread::PutThreadToSleep ()
       UNIXCPUBurst += runningTime;
       updateUNIXPriorities();
    }
+#endif
 
    while ((nextThread = scheduler->SelectNextReadyThread()) == NULL)
       interrupt->Idle();	// no one to run, wait for an interrupt
@@ -771,9 +778,9 @@ NachOSThread::updateUNIXPriorities()
 {
    for (int i = 0; i < thread_index; i++) {
       if (!exitThreadArray[i]) {
-         threadArray[i]->UNIXCPUBurst = threadArray[i]->UNIXCPUBurst/2;
+         threadArray[i]->UNIXCPUBurst = threadArray[i]->UNIXCPUBurst >> 1;
          threadArray[i]->UNIXPriority = threadArray[i]->basePriority
-                                      + (threadArray[i]->UNIXCPUBurst/2);
+                                      + (threadArray[i]->UNIXCPUBurst >> 1);
       }
    }
 }
