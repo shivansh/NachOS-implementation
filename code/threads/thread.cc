@@ -150,7 +150,9 @@ ThreadStatistics::getRunningTimeAndSleep(int currentTime)
 
    currentCPUBurst = currentTime - getBurstStartTime();
    stats->cpuBusyTime += currentCPUBurst;
-   stats->errorCPUBurst += abs(currentCPUBurst - getExpectedCPUBurst());
+
+   if (scheduler->schedAlgo == 2)
+      stats->errorCPUBurst += abs(currentCPUBurst - getExpectedCPUBurst());
 
    // Estimate the next CPU burst for the SJF algorithm.
    // NOTE: getExpectedCPUBurst() will return the previously

@@ -121,7 +121,9 @@ Statistics::Print()
     printf("Maximum CPU burst: %d\n", maxCPUBurst);
     printf("Minimum CPU burst: %d\n", minCPUBurst);
     printf("Average CPU burst: %f\n", avgCPUBurst);
-    printf("Error in CPU burst estimation: %f\n", errorCPUBurst / (avgCPUBurst*totalCPUBursts));
+    // FIXME Hacky solution for printing error when only using SJF
+    if (errorCPUBurst > 0)
+	printf("Error in CPU burst estimation: %f\n", errorCPUBurst / (avgCPUBurst*totalCPUBursts));
     printf("Number of non-zero CPU bursts: %d\n", totalCPUBursts);
     printf("Average waiting time in ready queue: %f\n", avgWaitingTime);
     printf("Maximum thread completion time: %d\n", maxFinishTime);
