@@ -148,7 +148,7 @@ main(int argc, char **argv)
 		if (token)
 		    priority[executable_count] = (int)atoi(token);
 		else
-		    priority[executable_count] = -1;  // FIXME
+		    priority[executable_count] = 0;  // FIXME
 
 		executable_count++;
 	    }

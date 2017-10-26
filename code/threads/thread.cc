@@ -770,7 +770,7 @@ NachOSThread::updateUNIXPriorities()
 {
    for (int i = 0; i < thread_index; i++) {
       if (!exitThreadArray[i]) {
-         threadArray[i]->UNIXCPUBurst >> 1;
+         threadArray[i]->UNIXCPUBurst = threadArray[i]->UNIXCPUBurst/2;
          threadArray[i]->UNIXPriority = threadArray[i]->basePriority
                                       + (threadArray[i]->UNIXCPUBurst/2);
       }
