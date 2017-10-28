@@ -14,6 +14,14 @@ code/test/testyield
 code/test/vectorsum
 code/threads/nachos
 code/userprog/nachos
+code/test/testloop2
+code/test/testloop3
+code/test/testloop4
+code/test/testloop5
+code/test/shmtest
+code/test/shmtest1
+code/test/vmtest1
+code/test/vmtest2
 
 # Exclude log files
 debug.log
