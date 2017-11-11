@@ -1,6 +1,6 @@
 /*
  Copyright (c) 1992-1993 The Regents of the University of California.
- All rights reserved.  See copyright.h for copyright notice and limitation 
+ All rights reserved.  See copyright.h for copyright notice and limitation
  of liability and disclaimer of warranty provisions.
  */
 
@@ -152,7 +152,7 @@ char *argv[];
 	int i;
 
 	pc = memoffset;
-	for  ( i=0; i<texthead.s_size; i += 4 ) 
+	for  ( i=0; i<texthead.s_size; i += 4 )
 	{
 		dis1(pc);
 		pc = pc + 4;

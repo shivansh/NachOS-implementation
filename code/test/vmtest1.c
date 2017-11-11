@@ -12,7 +12,7 @@ int
 main()
 {
     int i, k, sum=0;
-    
+
     for (k=0; k<OUTER_BOUND; k++) {
        for (i=0; i<2*SIZE1/3; i++) sum += array1[i];
        for (i=0; i<SIZE1/3; i++) sum += array1[i];

@@ -1,8 +1,8 @@
-// system.cc 
+// system.cc
 //	Nachos initialization and cleanup routines.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
@@ -67,8 +67,8 @@ extern void Cleanup();
 //	Note that instead of calling YieldCPU() directly (which would
 //	suspend the interrupt handler, not the interrupted thread
 //	which is what we wanted to context switch), we set a flag
-//	so that once the interrupt handler is done, it will appear as 
-//	if the interrupted thread called YieldCPU at the point it is 
+//	so that once the interrupt handler is done, it will appear as
+//	if the interrupted thread called YieldCPU at the point it is
 //	was interrupted.
 //
 //	"dummy" is because every interrupt handler takes one argument,
@@ -99,10 +99,10 @@ TimerInterruptHandler(int dummy)
 //----------------------------------------------------------------------
 // Initialize
 // 	Initialize Nachos global data structures.  Interpret command
-//	line arguments in order to determine flags for the initialization.  
-// 
+//	line arguments in order to determine flags for the initialization.
+//
 //	"argc" is the number of command line arguments (including the name
-//		of the command) -- ex: "nachos -d +" -> argc = 3 
+//		of the command) -- ex: "nachos -d +" -> argc = 3
 //	"argv" is an array of strings, one for each command line argument
 //		ex: "nachos -d +" -> argv = {"nachos", "-d", "+"}
 //----------------------------------------------------------------------
@@ -127,7 +127,7 @@ Initialize(int argc, char **argv)
 
     priority = new int[MAX_BATCH_SIZE];
     ASSERT(priority != NULL);
-    
+
     excludeMainThread = FALSE;
 
     for (i=0; i<MAX_THREAD_COUNT; i++) { threadArray[i] = NULL; exitThreadArray[i] = false; completionTimeArray[i] = -1; }
@@ -145,7 +145,7 @@ Initialize(int argc, char **argv)
     double rely = 1;		// network reliability
     int netname = 0;		// UNIX socket name
 #endif
-    
+
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
 	argCount = 1;
 	if (!strcmp(*argv, "-d")) {
@@ -196,14 +196,14 @@ Initialize(int argc, char **argv)
     // But if it ever tries to give up the CPU, we better have a NachOSThread
     // object to save its state.
     currentThread = NULL;
-    currentThread = new NachOSThread("main", MIN_NICE_PRIORITY);		
+    currentThread = new NachOSThread("main", MIN_NICE_PRIORITY);
     currentThread->setStatus(RUNNING);
     stats->start_time = stats->totalTicks;
     cpu_burst_start_time = stats->totalTicks;
 
     interrupt->Enable();
     CallOnUserAbort(Cleanup);			// if user hits ctl-C
-    
+
 #ifdef USER_PROGRAM
     machine = new Machine(debugUserProg);	// this must come first
 #endif
@@ -232,7 +232,7 @@ Cleanup()
 #ifdef NETWORK
     delete postOffice;
 #endif
-    
+
 #ifdef USER_PROGRAM
     delete machine;
 #endif
@@ -244,11 +244,11 @@ Cleanup()
 #ifdef FILESYS
     delete synchDisk;
 #endif
-    
+
     delete timer;
     delete scheduler;
     delete interrupt;
-    
+
     Exit(0);
 }
 

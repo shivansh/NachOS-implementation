@@ -1,6 +1,6 @@
 /*
  Copyright (c) 1992-1993 The Regents of the University of California.
- All rights reserved.  See copyright.h for copyright notice and limitation 
+ All rights reserved.  See copyright.h for copyright notice and limitation
  of liability and disclaimer of warranty provisions.
  */
 
@@ -62,7 +62,7 @@ char *storage_class[] = {
   "Bits", "CdbSystem", "RegImage", "Info", "UserStruct", "SData", "SBss",
   "RData", "Var", "Common", "SCommon", "VarRegister", "Variant", "SUndefined",
   "Init" };
-	  
+
 main(argc,argv)
 int argc;
 char *argv[];
@@ -179,7 +179,7 @@ int n;
     ++column;
   }
   return column == n;
-}  
+}
 
 mysetfile(f)
 FILE *f;

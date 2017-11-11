@@ -2,6 +2,7 @@
 
 # Exclude binaries
 code/bin/coff2noff
+code/bin/halt
 code/test/forkjoin
 code/test/halt
 code/test/matmult

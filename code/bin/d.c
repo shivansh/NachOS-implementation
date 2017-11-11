@@ -1,6 +1,6 @@
 /*
  Copyright (c) 1992-1993 The Regents of the University of California.
- All rights reserved.  See copyright.h for copyright notice and limitation 
+ All rights reserved.  See copyright.h for copyright notice and limitation
  of liability and disclaimer of warranty provisions.
  */
 
@@ -52,7 +52,7 @@ int instruction, pc;
 			case I_SLL:
 			case I_SRL:
 			case I_SRA:
-				printf("%s,%s,0x%x", 
+				printf("%s,%s,0x%x",
 					R(rd(instruction)),
 					R(rt(instruction)),
 					shamt(instruction));
@@ -62,7 +62,7 @@ int instruction, pc;
 			case I_SLLV:
 			case I_SRLV:
 			case I_SRAV:
-				printf("%s,%s,%s", 
+				printf("%s,%s,%s",
 					R(rd(instruction)),
 					R(rt(instruction)),
 					R(rs(instruction)));
@@ -91,12 +91,12 @@ int instruction, pc;
 			case I_MULTU:
 			case I_DIV:
 			case I_DIVU:
-				printf("%s,%s", 
+				printf("%s,%s",
 					R(rs(instruction)),
 					R(rt(instruction)));
 				break;
 
-			/* rd,rs,rt */ 
+			/* rd,rs,rt */
 			case I_ADD:
 			case I_ADDU:
 			case I_SUB:
@@ -107,7 +107,7 @@ int instruction, pc;
 			case I_NOR:
 			case I_SLT:
 			case I_SLTU:
-				printf("%s,%s,%s", 
+				printf("%s,%s,%s",
 					R(rd(instruction)),
 					R(rs(instruction)),
 					R(rt(instruction)));
@@ -168,7 +168,7 @@ int instruction, pc;
 			case I_ANDI:
 			case I_ORI:
 			case I_XORI:
-				printf("%s,%s,0x%x", 
+				printf("%s,%s,0x%x",
 					R(rt(instruction)),
 					R(rs(instruction)),
 					immed(instruction));
@@ -176,7 +176,7 @@ int instruction, pc;
 
 			 /* rt, immed */
 			case I_LUI:
-				printf("%s,0x%x", 
+				printf("%s,0x%x",
 					R(rt(instruction)),
 					immed(instruction));
 				break;
@@ -209,7 +209,7 @@ int instruction, pc;
 			case I_SWC1:
 			case I_SWC2:
 			case I_SWC3:
-				printf("%s,0x%x(%s)", 
+				printf("%s,0x%x(%s)",
 					R(rt(instruction)),
 					immed(instruction),
 					R(rs(instruction)));

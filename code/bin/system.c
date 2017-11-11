@@ -1,6 +1,6 @@
 /*
  Copyright (c) 1992-1993 The Regents of the University of California.
- All rights reserved.  See copyright.h for copyright notice and limitation 
+ All rights reserved.  See copyright.h for copyright notice and limitation
  of liability and disclaimer of warranty provisions.
  */
 
@@ -58,11 +58,11 @@ system_trap()
 			exit(0);
 			break;
 		case SYS_read:	/*3*/
-			Reg[1] = 
+			Reg[1] =
 				read(u_to_int_fd(o0), u_to_int_addr(o1), o2);
 			break;
 		case SYS_write:	/*4*/
-			Reg[1] = 
+			Reg[1] =
 				write(u_to_int_fd(o0), u_to_int_addr(o1), o2);
 			break;
 
@@ -92,7 +92,7 @@ system_trap()
 				if ((ioctl_group == 't') && (size == 8))
 				{
 					size = 6;
-					o1 = (o1 & ~((IOCPARM_MASK << 16))) 
+					o1 = (o1 & ~((IOCPARM_MASK << 16)))
 					   | (size << 16);
 				}
 			}

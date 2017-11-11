@@ -1,4 +1,4 @@
-/* sort.c 
+/* sort.c
  *    Test program to sort a large number of integers.
  *
  *    Intention is to stress virtual memory system.
@@ -17,7 +17,7 @@ main()
     int i, j, tmp;
 
     /* first initialize the array, in reverse sorted order */
-    for (i = 0; i < 1024; i++)		
+    for (i = 0; i < 1024; i++)
         A[i] = 1024 - i;
 
     /* then sort! */

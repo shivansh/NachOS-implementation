@@ -1,4 +1,4 @@
-// utility.h 
+// utility.h
 //	Miscellaneous useful definitions, including debugging routines.
 //
 //	The debugging routines allow the user to turn on selected
@@ -17,7 +17,7 @@
 //   	'n' -- network emulation (NETWORK)
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef UTILITY_H
@@ -36,14 +36,14 @@
 #ifndef FALSE
 #define FALSE 0
 #endif
-					 	// Boolean values.  
-						// This is the same definition 
+					 	// Boolean values.
+						// This is the same definition
 						// as in the g++ library.
 
 #define min(a,b)  (((a) < (b)) ? (a) : (b))
 #define max(a,b)  (((a) > (b)) ? (a) : (b))
 
-// Divide and either round up or down 
+// Divide and either round up or down
 #define divRoundDown(n,s)  ((n) / (s))
 #define divRoundUp(n,s)    (((n) / (s)) + ((((n) % (s)) > 0) ? 1 : 0))
 
@@ -56,13 +56,13 @@
 // This is used by NachOSThread::ThreadFork and for interrupt handlers, as well
 // as a couple of other places.
 
-typedef void (*VoidFunctionPtr)(int arg); 
-typedef void (*VoidNoArgFunctionPtr)(); 
+typedef void (*VoidFunctionPtr)(int arg);
+typedef void (*VoidNoArgFunctionPtr)();
 
 
 // Include interface that isolates us from the host machine system library.
 // Requires definition of bool, and VoidFunctionPtr
-#include "sysdep.h"				
+#include "sysdep.h"
 
 // Interface to debugging routines.
 
@@ -70,7 +70,7 @@ extern void DebugInit(char* flags);	// enable printing debug messages
 
 extern bool DebugIsEnabled(char flag); 	// Is this debug flag enabled?
 
-extern void DEBUG (char flag, char* format, ...);  	// Print debug message 
+extern void DEBUG (char flag, char* format, ...);  	// Print debug message
 							// if flag is enabled
 
 //----------------------------------------------------------------------
@@ -78,7 +78,7 @@ extern void DEBUG (char flag, char* format, ...);  	// Print debug message
 //      If condition is false,  print a message and dump core.
 //	Useful for documenting assumptions in the code.
 //
-//	NOTE: needs to be a #define, to be able to print the location 
+//	NOTE: needs to be a #define, to be able to print the location
 //	where the error occurred.
 //----------------------------------------------------------------------
 #define ASSERT(condition)                                                     \

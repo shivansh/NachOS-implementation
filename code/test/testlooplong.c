@@ -7,7 +7,7 @@ main()
 {
     int array[SIZE], i, k, sum, pid=syscall_wrapper_GetPID()-1;
     unsigned start_time, end_time;
-    
+
     start_time = syscall_wrapper_GetTime();
     for (k=0; k<OUTER_BOUND; k++) {
        for (i=0; i<SIZE; i++) sum += array[i];

@@ -11,7 +11,7 @@ int
 main()
 {
     int i, sum=0;
-    
+
     for (i=0; i<2*SIZE1/3; i++) sum += array1[i];
     for (i=0; i<SIZE1/3; i++) sum += array1[i];
     for (i=2*SIZE1/3; i<SIZE1; i++) sum += array1[i];
