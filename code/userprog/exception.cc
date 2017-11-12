@@ -153,6 +153,7 @@ ExceptionHandler(ExceptionType which)
       }
    }
    else if ((which == SyscallException) && (type == SysCall_Fork)) {
+      printf("Inside fork\n");
       // Advance program counters.
       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
@@ -300,7 +301,25 @@ ExceptionHandler(ExceptionType which)
       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-   } else {
+   }
+   else if ((which == SyscallException) && (type == SysCall_ShmAllocate)) {
+      int spaceSize, sharedVirtAddr;
+
+      // Get the size of the requested shared memory
+      spaceSize = machine->ReadRegister(4);
+
+      // Return the starting virtual address of the first
+      // shared page within the range of allocated shared pages.
+      sharedVirtAddr = currentThread->space->SharedAddressSpace(spaceSize);
+      printf("Address: %d\n", sharedVirtAddr);
+      machine->WriteRegister(2, sharedVirtAddr);
+
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   }
+   else {
       printf("Unexpected user mode exception %d %d\n", which, type);
       ASSERT(FALSE);
    }

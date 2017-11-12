@@ -24,7 +24,8 @@ class ProcessAddressSpace {
     	// the program stored in the file "executable".
 	ProcessAddressSpace(OpenFile *executable);
 
-	ProcessAddressSpace (ProcessAddressSpace *parentSpace);	// Used by fork
+	ProcessAddressSpace(ProcessAddressSpace *parentSpace);	// Used by fork
+	int SharedAddressSpace(int spaceSize);
 
 	~ProcessAddressSpace();			// De-allocate an address space
 

@@ -96,6 +96,7 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *executable)
       KernelPageTable[i].readOnly = FALSE;  // if the code segment was entirely on
       // a separate page, we could set its
       // pages to be read-only
+      KernelPageTable[i].shared = FALSE;
    }
    // zero out the entire address space, to zero the unitialized data segment
    // and the stack segment
@@ -124,7 +125,6 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *executable)
       executable->ReadAt(&(machine->mainMemory[pageFrame * PageSize + offset]),
 	    noffH.initData.size, noffH.initData.inFileAddr);
    }
-
 }
 
 //----------------------------------------------------------------------
@@ -135,37 +135,115 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *executable)
 ProcessAddressSpace::ProcessAddressSpace(ProcessAddressSpace *parentSpace)
 {
    numVirtualPages = parentSpace->GetNumPages();
-   unsigned i, size = numVirtualPages * PageSize;
+   TranslationEntry *parentPageTable = parentSpace->GetPageTable();
+   unsigned startAddrParent = parentPageTable[0].physicalPage*PageSize;
+   unsigned i, j, numSharedPages = 0, size;
+   int k;
 
-   ASSERT(numVirtualPages+numPagesAllocated <= NumPhysPages);                // check we're not trying
-   // to run anything too big --
-   // at least until we have
-   // virtual memory
+   for (i = 0; i < numVirtualPages; i++)
+      if (parentPageTable[i].shared)
+         numSharedPages++;
+
+   // TODO Are the shared pages supposed to be counted ?
+   size = numVirtualPages * PageSize;
+
+   // Check we're not trying to run anything too big --
+   // at least until we have virtual memory.
+   ASSERT(numVirtualPages+numPagesAllocated <= NumPhysPages);
 
    DEBUG('a', "Initializing address space, num pages %d, size %d\n",
 	 numVirtualPages, size);
-   // first, set up the translation
-   TranslationEntry* parentPageTable = parentSpace->GetPageTable();
+   // First, set up the translation
    KernelPageTable = new TranslationEntry[numVirtualPages];
-   for (i = 0; i < numVirtualPages; i++) {
+
+   for (i = 0, j = 0; i < numVirtualPages; i++) {
       KernelPageTable[i].virtualPage = i;
-      KernelPageTable[i].physicalPage = i+numPagesAllocated;
       KernelPageTable[i].valid = parentPageTable[i].valid;
       KernelPageTable[i].use = parentPageTable[i].use;
       KernelPageTable[i].dirty = parentPageTable[i].dirty;
-      KernelPageTable[i].readOnly = parentPageTable[i].readOnly;  	// if the code segment was entirely on
-      // a separate page, we could set its
-      // pages to be read-only
+      // If the code segment was entirely on a separate
+      // page, we could set its pages to be read-only.
+      KernelPageTable[i].readOnly = parentPageTable[i].readOnly;
+      KernelPageTable[i].shared = parentPageTable[i].shared;
+
+      if (!parentPageTable[i].shared) {
+         // The page is not shared. Allocate a new page and
+         // copy the contents from the parent's physical page.
+         KernelPageTable[i].physicalPage = numPagesAllocated;
+
+         // Copy the contents.
+         for (k = 0; k < PageSize; k++) {
+            // The variables 'j' and 'numPagesAllocate' are used to
+            // keep track of the physical addresses to write to for
+            // the child and parent respectively.
+            machine->mainMemory[(numPagesAllocated*PageSize)+ k] =
+               machine->mainMemory[startAddrParent + (j*PageSize) +k];
+         }
+
+         j++;
+         numPagesAllocated++;
+      }
+      else {
+         // The page is shared. Copy the physical page from
+         // parent without allocating a new physical page.
+         KernelPageTable[i].physicalPage = parentPageTable[i].physicalPage;
+      }
+   }
+}
+
+//----------------------------------------------------------------------
+// ProcessAddressSpace::SharedAddressSpace
+// 	Sets up a shared address space and returns the starting
+// 	virtual address of the first shared page.
+//----------------------------------------------------------------------
+int
+ProcessAddressSpace::SharedAddressSpace(int spaceSize)
+{
+   DEBUG('a', "Initializing a shared address space,");
+
+   // Historical note: Took an entire day to catch this
+   // off-by-one error. The interesting thing is that there
+   // is a pre-defined directive for the required result :P
+   unsigned numSharedPages = divRoundUp(spaceSize, PageSize);
+   TranslationEntry *sharedPageTable = new TranslationEntry[numVirtualPages + numSharedPages];
+
+   // The shared page table contains the entries from the old page
+   // table as well as the newly created shared entries.
+   // Copy the existing page table entries from the old page table.
+   for (unsigned i = 0; i < numVirtualPages; i++) {
+      sharedPageTable[i].virtualPage = KernelPageTable[i].virtualPage;
+      sharedPageTable[i].physicalPage = KernelPageTable[i].physicalPage;
+      sharedPageTable[i].valid = KernelPageTable[i].valid;
+      sharedPageTable[i].use = KernelPageTable[i].use;
+      sharedPageTable[i].dirty = KernelPageTable[i].dirty;
+      sharedPageTable[i].readOnly = KernelPageTable[i].readOnly;
+      sharedPageTable[i].shared = KernelPageTable[i].shared;
    }
 
-   // Copy the contents
-   unsigned startAddrParent = parentPageTable[0].physicalPage*PageSize;
-   unsigned startAddrChild = numPagesAllocated*PageSize;
-   for (i=0; i<size; i++) {
-      machine->mainMemory[startAddrChild+i] = machine->mainMemory[startAddrParent+i];
+   // Set up the shared pages.
+   for (unsigned i = numVirtualPages; i < numSharedPages + numVirtualPages; i++) {
+      sharedPageTable[i].virtualPage = i;
+      sharedPageTable[i].physicalPage = i + numPagesAllocated;
+      sharedPageTable[i].valid = TRUE;
+      sharedPageTable[i].use = FALSE;
+      sharedPageTable[i].dirty = FALSE;
+      sharedPageTable[i].readOnly = FALSE;
+      sharedPageTable[i].shared = TRUE;
    }
 
-   numPagesAllocated += numVirtualPages;
+   numPagesAllocated += numSharedPages;
+   numVirtualPages += numSharedPages;
+
+   // Replace the old page table by the newly created page table.
+   // NOTE The old page table needs to be deleted to prevent overflow.
+   delete KernelPageTable;
+   KernelPageTable = sharedPageTable;
+
+   // Tell the machine where to find the newly created page table.
+   RestoreContextOnSwitch();
+
+   // Return the starting virtual address of the first shared page.
+   return (numVirtualPages-numSharedPages) * PageSize;
 }
 
 //----------------------------------------------------------------------
