@@ -15,6 +15,7 @@
 
 #include "copyright.h"
 #include "filesys.h"
+#include "noff.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
 
@@ -27,6 +28,8 @@ class ProcessAddressSpace {
 	ProcessAddressSpace(ProcessAddressSpace *parentSpace);	// Used by fork
 	int SharedAddressSpace(int spaceSize);
 
+	void PageFaultHandler(unsigned virtualAddress);
+
 	~ProcessAddressSpace();			// De-allocate an address space
 
 	void InitUserModeCPURegisters();		// Initialize user-level CPU registers,
@@ -37,7 +40,13 @@ class ProcessAddressSpace {
 
 	unsigned GetNumPages();
 
+	OpenFile* CreateNewExecutable();
+
 	TranslationEntry* GetPageTable();
+
+	NoffHeader noffH;
+
+	OpenFile *executable;
 
     private:
 	TranslationEntry *KernelPageTable;	// Assume linear page table translation

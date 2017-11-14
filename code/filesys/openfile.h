@@ -73,6 +73,13 @@ public:
 private:
     int file;
     int currentOffset;
+
+public:
+    int
+    GetFileDescriptor()
+    {
+        return file;
+    }
 };
 
 #else  // FILESYS

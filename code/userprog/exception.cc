@@ -307,6 +307,11 @@ ExceptionHandler(ExceptionType which)
         machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
         machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
         machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
+    } else if ((which == SyscallException) && (type == PageFaultException)) {
+        printf("--PageFaultException\n");
+        tempval = (unsigned)machine->ReadRegister(39);
+        currentThread->space->PageFaultHandler(tempval);
+        machine->WriteRegister(2, 0);
     } else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);

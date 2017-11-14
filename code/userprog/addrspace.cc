@@ -6,7 +6,7 @@
 //	1. link with the -N -T 0 option
 //	2. run coff2noff to convert the object file to Nachos format
 //		(Nachos object code format is essentially just a simpler
-//		version of the UNIX executable object code format)
+//		version of the UNIX _executable object code format)
 //	3. load the NOFF file into the Nachos file system
 //		(if you haven't implemented the file system yet, you
 //		don't need to do this last step)
@@ -18,7 +18,6 @@
 #include "copyright.h"
 #include "system.h"
 #include "addrspace.h"
-#include "noff.h"
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -45,7 +44,7 @@ SwapHeader (NoffHeader *noffH)
 //----------------------------------------------------------------------
 // ProcessAddressSpace::ProcessAddressSpace
 // 	Create an address space to run a user program.
-//	Load the program from a file "executable", and set everything
+//	Load the program from a file "_executable", and set everything
 //	up so that we can start executing user instructions.
 //
 //	Assumes that the object code file is in NOFF format.
@@ -54,16 +53,18 @@ SwapHeader (NoffHeader *noffH)
 //	memory.  For now, this is really simple (1:1), since we are
 //	only uniprogramming, and we have a single unsegmented page table
 //
-//	"executable" is the file containing the object code to load into memory
+//	"_executable" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
 
-ProcessAddressSpace::ProcessAddressSpace(OpenFile *executable)
+ProcessAddressSpace::ProcessAddressSpace(OpenFile *_executable)
 {
-    NoffHeader noffH;
+    // NoffHeader noffH;           // Now a public class variable.
     unsigned int i, size;
     unsigned vpn, offset;
     TranslationEntry *entry;
     unsigned int pageFrame;
+
+    executable = _executable;
 
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) &&
@@ -78,7 +79,7 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *executable)
     numVirtualPages = divRoundUp(size, PageSize);
     size = numVirtualPages * PageSize;
 
-    ASSERT(numVirtualPages+numPagesAllocated <= NumPhysPages);		// check we're not trying
+    // ASSERT(numVirtualPages+numPagesAllocated <= NumPhysPages);		// check we're not trying
     // to run anything too big --
     // at least until we have
     // virtual memory
@@ -90,7 +91,8 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *executable)
     for (i = 0; i < numVirtualPages; i++) {
         KernelPageTable[i].virtualPage = i;
         KernelPageTable[i].physicalPage = i+numPagesAllocated;
-        KernelPageTable[i].valid = TRUE;
+        // FIXME valid bit needs to be false.
+        KernelPageTable[i].valid = FALSE;
         KernelPageTable[i].use = FALSE;
         KernelPageTable[i].dirty = FALSE;
         KernelPageTable[i].readOnly = FALSE;  // if the code segment was entirely on
@@ -98,6 +100,8 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *executable)
         // pages to be read-only
         KernelPageTable[i].shared = FALSE;
     }
+
+    /*
     // zero out the entire address space, to zero the unitialized data segment
     // and the stack segment
     bzero(&machine->mainMemory[numPagesAllocated*PageSize], size);
@@ -125,6 +129,8 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *executable)
         executable->ReadAt(&(machine->mainMemory[pageFrame * PageSize + offset]),
                 noffH.initData.size, noffH.initData.inFileAddr);
     }
+    */
+
 }
 
 //----------------------------------------------------------------------
@@ -136,9 +142,11 @@ ProcessAddressSpace::ProcessAddressSpace(ProcessAddressSpace *parentSpace)
 {
     numVirtualPages = parentSpace->GetNumPages();
     TranslationEntry *parentPageTable = parentSpace->GetPageTable();
-    unsigned startAddrParent = parentPageTable[0].physicalPage*PageSize;
     unsigned i, j, numSharedPages = 0, size;
     int k;
+
+    executable = parentSpace->CreateNewExecutable();
+    noffH = parentSpace->noffH;
 
     for (i = 0; i < numVirtualPages; i++)
         if (parentPageTable[i].shared)
@@ -156,8 +164,10 @@ ProcessAddressSpace::ProcessAddressSpace(ProcessAddressSpace *parentSpace)
     // First, set up the translation
     KernelPageTable = new TranslationEntry[numVirtualPages];
 
-    for (i = 0, j = 0; i < numVirtualPages; i++) {
+    for (i = 0; i < numVirtualPages; i++) {
         KernelPageTable[i].virtualPage = i;
+        // FIXME The valid bit needs to be set to false.
+        // This will enable Copy-On-Write (COW) ??
         KernelPageTable[i].valid = parentPageTable[i].valid;
         KernelPageTable[i].use = parentPageTable[i].use;
         KernelPageTable[i].dirty = parentPageTable[i].dirty;
@@ -168,25 +178,27 @@ ProcessAddressSpace::ProcessAddressSpace(ProcessAddressSpace *parentSpace)
 
         if (!parentPageTable[i].shared) {
             // The page is not shared. Allocate a new page and
-            // copy the contents from the parent's physical page.
-            KernelPageTable[i].physicalPage = numPagesAllocated;
+            // copy the contents from the parent's physical page
+            //          -- only if the page is valid.
 
-            // Copy the contents.
-            for (k = 0; k < PageSize; k++) {
-                // The variables 'j' and 'numPagesAllocate' are used to
-                // keep track of the physical addresses to write to for
-                // the child and parent respectively.
-                machine->mainMemory[(numPagesAllocated*PageSize)+ k] =
-                    machine->mainMemory[startAddrParent + (j*PageSize) +k];
+            // Copy the contents only if the page is valid.
+            if (parentPageTable[i].valid) {
+                KernelPageTable[i].physicalPage = numPagesAllocated;
+                for (k = 0; k < PageSize; k++) {
+                    // The variables 'j' and 'numPagesAllocate' are used to
+                    // keep track of the physical addresses to write to for
+                    // the child and parent respectively.
+                    machine->mainMemory[(numPagesAllocated*PageSize) + k] =
+                        machine->mainMemory[(parentPageTable[i].physicalPage*PageSize) + k];
+                }
+                numPagesAllocated++;
             }
-
-            j++;
-            numPagesAllocated++;
         }
         else {
             // The page is shared. Copy the physical page from
             // parent without allocating a new physical page.
             KernelPageTable[i].physicalPage = parentPageTable[i].physicalPage;
+            // TODO Should this be counted as a page fault ?
         }
     }
 }
@@ -244,6 +256,101 @@ ProcessAddressSpace::SharedAddressSpace(int spaceSize)
 
     // Return the starting virtual address of the first shared page.
     return (numVirtualPages-numSharedPages) * PageSize;
+}
+
+void
+ProcessAddressSpace::PageFaultHandler(unsigned accessedVirtAddr)
+{
+    // TODO check for off-by-one error here.
+    unsigned vpn = accessedVirtAddr / PageSize;
+    unsigned pageFrame, offset;
+    TranslationEntry *entry;
+
+    stats->numPageFaults++;
+
+    // Update the page table entry for this virtual page.
+    // TODO Check if the indexing is correct -
+    //       -- numPagesAllocated vs (numPagesAllocated-1).
+    KernelPageTable[vpn].physicalPage = numPagesAllocated;
+    KernelPageTable[vpn].valid = TRUE;
+
+    // Zero out the entire page.
+    bzero(&(machine->mainMemory[numPagesAllocated*PageSize]), PageSize);
+
+    // Reference for the following copy mechanism -
+    // noffMagic
+    // ---------
+    // A reserved ``magic'' number that indicates that the file is in
+    // Noff format. The magic number is stored in the first four bytes
+    // of the file. Before attempting to execute a user-program, Nachos
+    // checks the magic number to be sure that the file about to be
+    // executed is actually a Nachos executable.
+    // For each of the remaining sections, Nachos maintains the
+    // following information:
+
+    // virtualAddr
+    //     What virtual address that segment begins at (normally zero).
+    // inFileAddr
+    //     Pointer within the Noff file where that section actually begins
+    //     (so that Nachos can read it into memory before execution begins).
+    // size
+    //     The size (in bytes) of that segment.
+
+    unsigned startVirtAddress = vpn * PageSize;
+
+    // In case the accessed virtual address is at an offset.
+    unsigned startCopyAddress = max(startVirtAddress,
+                                    noffH.code.virtualAddr);
+
+    // It might be possible that the segment ends before the page ends.
+    unsigned endCopyAddress = min(startVirtAddress + PageSize,
+                                  noffH.code.virtualAddr + noffH.code.size);
+
+    // Copy the code segment.
+    // TODO noffH required here. Since every address space will be
+    // associated with unique _executable, this can be made a private variable.
+    if (startCopyAddress < endCopyAddress) {
+        // DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
+                    // noffH.code.virtualAddr, noffH.code.size);
+        // TODO Which vpn to use now ? The one obtained from
+        // the (x) argument or (✓) the one obtained here.
+        // vpn = noffH.code.virtualAddr / PageSize;
+        // offset = noffH.code.virtualAddr % PageSize;
+        // offset = accessedVirtAddr % PageSize;
+        offset = startCopyAddress - startVirtAddress;
+        // entry = &KernelPageTable[vpn];
+        // pageFrame = entry->physicalPage;
+        pageFrame = numPagesAllocated;
+        // TODO How much to copy ?
+        executable->ReadAt(&(machine->mainMemory[pageFrame * PageSize + offset]),
+                            endCopyAddress - startCopyAddress,
+                            noffH.code.inFileAddr + (startCopyAddress - noffH.code.virtualAddr));
+    }
+
+    // In case the accessed virtual address is at an offset.
+    startCopyAddress = max(startVirtAddress,
+                           noffH.initData.virtualAddr);
+
+    // It might be possible that the segment ends before the page ends.
+    endCopyAddress = min(startVirtAddress + PageSize,
+                         noffH.initData.virtualAddr + noffH.initData.size);
+    // Repeat the above procedure for the data segment.
+    if (startCopyAddress < endCopyAddress) {
+        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
+                   noffH.initData.virtualAddr, noffH.initData.size);
+        // offset = accessedVirtAddr % PageSize;
+        offset = startCopyAddress - startVirtAddress;
+        // entry = &KernelPageTable[vpn];
+        // pageFrame = entry->physicalPage;
+        pageFrame = numPagesAllocated;
+        executable->ReadAt(&(machine->mainMemory[pageFrame * PageSize + offset]),
+                            endCopyAddress - startCopyAddress,
+                            noffH.initData.inFileAddr + (startCopyAddress - noffH.initData.virtualAddr));
+    }
+
+    // Increment the allocated pages.
+    numPagesAllocated++;
+
 }
 
 //----------------------------------------------------------------------
@@ -323,4 +430,12 @@ TranslationEntry*
 ProcessAddressSpace::GetPageTable()
 {
     return KernelPageTable;
+}
+
+OpenFile*
+ProcessAddressSpace::CreateNewExecutable()
+{
+    int fd = executable->GetFileDescriptor();
+    OpenFile *newFile = new OpenFile(fd);
+    return newFile;
 }
