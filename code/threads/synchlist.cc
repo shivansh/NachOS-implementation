@@ -12,8 +12,8 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
-#include "copyright.h"
 #include "synchlist.h"
+#include "copyright.h"
 
 //----------------------------------------------------------------------
 // SynchList::SynchList
@@ -24,8 +24,8 @@
 
 SynchList::SynchList()
 {
-    list = new List();
-    lock = new Lock("list lock");
+    list      = new List();
+    lock      = new Lock("list lock");
     listEmpty = new Condition("list empty cond");
 }
 
@@ -51,11 +51,11 @@ SynchList::~SynchList()
 //----------------------------------------------------------------------
 
 void
-SynchList::Append(void *item)
+SynchList::Append(void* item)
 {
-    lock->Acquire();		// enforce mutual exclusive access to the list
+    lock->Acquire();  // enforce mutual exclusive access to the list
     list->Append(item);
-    listEmpty->Signal(lock);	// wake up a waiter, if any
+    listEmpty->Signal(lock);  // wake up a waiter, if any
     lock->Release();
 }
 
@@ -67,14 +67,14 @@ SynchList::Append(void *item)
 //	The removed item.
 //----------------------------------------------------------------------
 
-void *
+void*
 SynchList::Remove()
 {
-    void *item;
+    void* item;
 
-    lock->Acquire();			// enforce mutual exclusion
+    lock->Acquire();  // enforce mutual exclusion
     while (list->IsEmpty())
-	listEmpty->Wait(lock);		// wait until list isn't empty
+        listEmpty->Wait(lock);  // wait until list isn't empty
     item = list->Remove();
     ASSERT(item != NULL);
     lock->Release();

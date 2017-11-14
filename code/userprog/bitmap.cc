@@ -6,8 +6,8 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
-#include "copyright.h"
 #include "bitmap.h"
+#include "copyright.h"
 
 //----------------------------------------------------------------------
 // BitMap::BitMap
@@ -19,9 +19,9 @@
 
 BitMap::BitMap(int nitems)
 {
-    numBits = nitems;
+    numBits  = nitems;
     numWords = divRoundUp(numBits, BitsInWord);
-    map = new unsigned int[numWords];
+    map      = new unsigned int[numWords];
     for (int i = 0; i < numBits; i++)
         Clear(i);
 }
@@ -77,9 +77,9 @@ BitMap::Test(int which)
     ASSERT(which >= 0 && which < numBits);
 
     if (map[which / BitsInWord] & (1 << (which % BitsInWord)))
-	return TRUE;
+        return TRUE;
     else
-	return FALSE;
+        return FALSE;
 }
 
 //----------------------------------------------------------------------
@@ -95,10 +95,10 @@ int
 BitMap::Find()
 {
     for (int i = 0; i < numBits; i++)
-	if (!Test(i)) {
-	    Mark(i);
-	    return i;
-	}
+        if (!Test(i)) {
+            Mark(i);
+            return i;
+        }
     return -1;
 }
 
@@ -114,7 +114,8 @@ BitMap::NumClear()
     int count = 0;
 
     for (int i = 0; i < numBits; i++)
-	if (!Test(i)) count++;
+        if (!Test(i))
+            count++;
     return count;
 }
 
@@ -131,8 +132,8 @@ BitMap::Print()
 {
     printf("Bitmap set:\n");
     for (int i = 0; i < numBits; i++)
-	if (Test(i))
-	    printf("%d, ", i);
+        if (Test(i))
+            printf("%d, ", i);
     printf("\n");
 }
 
@@ -146,9 +147,9 @@ BitMap::Print()
 //----------------------------------------------------------------------
 
 void
-BitMap::FetchFrom(OpenFile *file)
+BitMap::FetchFrom(OpenFile* file)
 {
-    file->ReadAt((char *)map, numWords * sizeof(unsigned), 0);
+    file->ReadAt((char*)map, numWords * sizeof(unsigned), 0);
 }
 
 //----------------------------------------------------------------------
@@ -159,7 +160,7 @@ BitMap::FetchFrom(OpenFile *file)
 //----------------------------------------------------------------------
 
 void
-BitMap::WriteBack(OpenFile *file)
+BitMap::WriteBack(OpenFile* file)
 {
-   file->WriteAt((char *)map, numWords * sizeof(unsigned), 0);
+    file->WriteAt((char*)map, numWords * sizeof(unsigned), 0);
 }

@@ -20,10 +20,10 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
-#include "copyright.h"
-#include "utility.h"
-#include "filehdr.h"
 #include "directory.h"
+#include "copyright.h"
+#include "filehdr.h"
+#include "utility.h"
 
 //----------------------------------------------------------------------
 // Directory::Directory
@@ -37,10 +37,10 @@
 
 Directory::Directory(int size)
 {
-    table = new DirectoryEntry[size];
+    table     = new DirectoryEntry[size];
     tableSize = size;
-    for (int i = 0; i < tableSize; i++)
-	table[i].inUse = FALSE;
+    for (int i         = 0; i < tableSize; i++)
+        table[i].inUse = FALSE;
 }
 
 //----------------------------------------------------------------------
@@ -50,7 +50,7 @@ Directory::Directory(int size)
 
 Directory::~Directory()
 {
-    delete [] table;
+    delete[] table;
 }
 
 //----------------------------------------------------------------------
@@ -61,9 +61,9 @@ Directory::~Directory()
 //----------------------------------------------------------------------
 
 void
-Directory::FetchFrom(OpenFile *file)
+Directory::FetchFrom(OpenFile* file)
 {
-    (void) file->ReadAt((char *)table, tableSize * sizeof(DirectoryEntry), 0);
+    (void)file->ReadAt((char*)table, tableSize * sizeof(DirectoryEntry), 0);
 }
 
 //----------------------------------------------------------------------
@@ -74,9 +74,9 @@ Directory::FetchFrom(OpenFile *file)
 //----------------------------------------------------------------------
 
 void
-Directory::WriteBack(OpenFile *file)
+Directory::WriteBack(OpenFile* file)
 {
-    (void) file->WriteAt((char *)table, tableSize * sizeof(DirectoryEntry), 0);
+    (void)file->WriteAt((char*)table, tableSize * sizeof(DirectoryEntry), 0);
 }
 
 //----------------------------------------------------------------------
@@ -88,12 +88,12 @@ Directory::WriteBack(OpenFile *file)
 //----------------------------------------------------------------------
 
 int
-Directory::FindIndex(char *name)
+Directory::FindIndex(char* name)
 {
     for (int i = 0; i < tableSize; i++)
         if (table[i].inUse && !strncmp(table[i].name, name, FileNameMaxLen))
-	    return i;
-    return -1;		// name not in directory
+            return i;
+    return -1;  // name not in directory
 }
 
 //----------------------------------------------------------------------
@@ -106,12 +106,12 @@ Directory::FindIndex(char *name)
 //----------------------------------------------------------------------
 
 int
-Directory::Find(char *name)
+Directory::Find(char* name)
 {
     int i = FindIndex(name);
 
     if (i != -1)
-	return table[i].sector;
+        return table[i].sector;
     return -1;
 }
 
@@ -127,19 +127,19 @@ Directory::Find(char *name)
 //----------------------------------------------------------------------
 
 bool
-Directory::Add(char *name, int newSector)
+Directory::Add(char* name, int newSector)
 {
     if (FindIndex(name) != -1)
-	return FALSE;
+        return FALSE;
 
     for (int i = 0; i < tableSize; i++)
         if (!table[i].inUse) {
             table[i].inUse = TRUE;
             strncpy(table[i].name, name, FileNameMaxLen);
             table[i].sector = newSector;
-        return TRUE;
-	}
-    return FALSE;	// no space.  Fix when we have extensible files.
+            return TRUE;
+        }
+    return FALSE;  // no space.  Fix when we have extensible files.
 }
 
 //----------------------------------------------------------------------
@@ -151,12 +151,12 @@ Directory::Add(char *name, int newSector)
 //----------------------------------------------------------------------
 
 bool
-Directory::Remove(char *name)
+Directory::Remove(char* name)
 {
     int i = FindIndex(name);
 
     if (i == -1)
-	return FALSE; 		// name not in directory
+        return FALSE;  // name not in directory
     table[i].inUse = FALSE;
     return TRUE;
 }
@@ -169,9 +169,9 @@ Directory::Remove(char *name)
 void
 Directory::List()
 {
-   for (int i = 0; i < tableSize; i++)
-	if (table[i].inUse)
-	    printf("%s\n", table[i].name);
+    for (int i = 0; i < tableSize; i++)
+        if (table[i].inUse)
+            printf("%s\n", table[i].name);
 }
 
 //----------------------------------------------------------------------
@@ -183,15 +183,15 @@ Directory::List()
 void
 Directory::Print()
 {
-    FileHeader *hdr = new FileHeader;
+    FileHeader* hdr = new FileHeader;
 
     printf("Directory contents:\n");
     for (int i = 0; i < tableSize; i++)
-	if (table[i].inUse) {
-	    printf("Name: %s, Sector: %d\n", table[i].name, table[i].sector);
-	    hdr->FetchFrom(table[i].sector);
-	    hdr->Print();
-	}
+        if (table[i].inUse) {
+            printf("Name: %s, Sector: %d\n", table[i].name, table[i].sector);
+            hdr->FetchFrom(table[i].sector);
+            hdr->Print();
+        }
     printf("\n");
     delete hdr;
 }

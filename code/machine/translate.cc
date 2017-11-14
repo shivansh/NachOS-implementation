@@ -41,26 +41,26 @@
 unsigned int
 WordToHost(unsigned int word) {
 #ifdef HOST_IS_BIG_ENDIAN
-	 register unsigned long result;
-	 result = (word >> 24) & 0x000000ff;
-	 result |= (word >> 8) & 0x0000ff00;
-	 result |= (word << 8) & 0x00ff0000;
-	 result |= (word << 24) & 0xff000000;
-	 return result;
+    register unsigned long result;
+    result = (word >> 24) & 0x000000ff;
+    result |= (word >> 8) & 0x0000ff00;
+    result |= (word << 8) & 0x00ff0000;
+    result |= (word << 24) & 0xff000000;
+    return result;
 #else
-	 return word;
+    return word;
 #endif /* HOST_IS_BIG_ENDIAN */
 }
 
 unsigned short
 ShortToHost(unsigned short shortword) {
 #ifdef HOST_IS_BIG_ENDIAN
-	 register unsigned short result;
-	 result = (shortword << 8) & 0xff00;
-	 result |= (shortword >> 8) & 0x00ff;
-	 return result;
+    register unsigned short result;
+    result = (shortword << 8) & 0xff00;
+    result |= (shortword >> 8) & 0x00ff;
+    return result;
 #else
-	 return shortword;
+    return shortword;
 #endif /* HOST_IS_BIG_ENDIAN */
 }
 
@@ -99,22 +99,22 @@ Machine::ReadMem(int addr, int size, int *value)
 	return FALSE;
     }
     switch (size) {
-      case 1:
-	data = machine->mainMemory[physicalAddress];
-	*value = data;
-	break;
+	case 1:
+	    data = machine->mainMemory[physicalAddress];
+	    *value = data;
+	    break;
 
-      case 2:
-	data = *(unsigned short *) &machine->mainMemory[physicalAddress];
-	*value = ShortToHost(data);
-	break;
+	case 2:
+	    data = *(unsigned short *) &machine->mainMemory[physicalAddress];
+	    *value = ShortToHost(data);
+	    break;
 
-      case 4:
-	data = *(unsigned int *) &machine->mainMemory[physicalAddress];
-	*value = WordToHost(data);
-	break;
+	case 4:
+	    data = *(unsigned int *) &machine->mainMemory[physicalAddress];
+	    *value = WordToHost(data);
+	    break;
 
-      default: ASSERT(FALSE);
+	default: ASSERT(FALSE);
     }
 
     DEBUG('a', "\tvalue read = %8.8x\n", *value);
@@ -148,21 +148,21 @@ Machine::WriteMem(int addr, int size, int value)
 	return FALSE;
     }
     switch (size) {
-      case 1:
-	machine->mainMemory[physicalAddress] = (unsigned char) (value & 0xff);
-	break;
+	case 1:
+	    machine->mainMemory[physicalAddress] = (unsigned char) (value & 0xff);
+	    break;
 
-      case 2:
-	*(unsigned short *) &machine->mainMemory[physicalAddress]
+	case 2:
+	    *(unsigned short *) &machine->mainMemory[physicalAddress]
 		= ShortToMachine((unsigned short) (value & 0xffff));
-	break;
+	    break;
 
-      case 4:
-	*(unsigned int *) &machine->mainMemory[physicalAddress]
+	case 4:
+	    *(unsigned int *) &machine->mainMemory[physicalAddress]
 		= WordToMachine((unsigned int) value);
-	break;
+	    break;
 
-      default: ASSERT(FALSE);
+	default: ASSERT(FALSE);
     }
 
     return TRUE;
@@ -193,7 +193,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 
     DEBUG('a', "\tTranslate 0x%x, %s: ", virtAddr, writing ? "write" : "read");
 
-// check for alignment errors
+    // check for alignment errors
     if (((size == 4) && (virtAddr & 0x3)) || ((size == 2) && (virtAddr & 0x1))){
 	DEBUG('a', "alignment problem at %d, size %d!\n", virtAddr, size);
 	return AddressErrorException;
@@ -203,33 +203,33 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     ASSERT(tlb == NULL || KernelPageTable == NULL);
     ASSERT(tlb != NULL || KernelPageTable != NULL);
 
-// calculate the virtual page number, and offset within the page,
-// from the virtual address
+    // calculate the virtual page number, and offset within the page,
+    // from the virtual address
     vpn = (unsigned) virtAddr / PageSize;
     offset = (unsigned) virtAddr % PageSize;
 
     if (tlb == NULL) {		// => page table => vpn is index into table
 	if (vpn >= KernelPageTableSize) {
 	    DEBUG('a', "virtual page # %d too large for page table size %d!\n",
-			virtAddr, KernelPageTableSize);
+		    virtAddr, KernelPageTableSize);
 	    return AddressErrorException;
 	} else if (!KernelPageTable[vpn].valid) {
 	    DEBUG('a', "virtual page # %d too large for page table size %d!\n",
-			virtAddr, KernelPageTableSize);
+		    virtAddr, KernelPageTableSize);
 	    return PageFaultException;
 	}
 	entry = &KernelPageTable[vpn];
     } else {
-        for (entry = NULL, i = 0; i < TLBSize; i++)
-    	    if (tlb[i].valid && (tlb[i].virtualPage == vpn)) {
+	for (entry = NULL, i = 0; i < TLBSize; i++)
+	    if (tlb[i].valid && (tlb[i].virtualPage == vpn)) {
 		entry = &tlb[i];			// FOUND!
 		break;
 	    }
 	if (entry == NULL) {				// not found
-    	    DEBUG('a', "*** no valid TLB entry found for this virtual page!\n");
-    	    return PageFaultException;		// really, this is a TLB fault,
-						// the page may be in memory,
-						// but not in the TLB
+	    DEBUG('a', "*** no valid TLB entry found for this virtual page!\n");
+	    return PageFaultException;		// really, this is a TLB fault,
+	    // the page may be in memory,
+	    // but not in the TLB
 	}
     }
 
@@ -265,16 +265,16 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 int
 Machine::GetPA (unsigned vaddr)
 {
-   unsigned vpn = vaddr/PageSize;
-   unsigned offset = vaddr % PageSize;
-   TranslationEntry *entry;
-   unsigned int pageFrame;
+    unsigned vpn = vaddr/PageSize;
+    unsigned offset = vaddr % PageSize;
+    TranslationEntry *entry;
+    unsigned int pageFrame;
 
-   if ((vpn < KernelPageTableSize) && KernelPageTable[vpn].valid) {
-      entry = &KernelPageTable[vpn];
-      pageFrame = entry->physicalPage;
-      if (pageFrame >= NumPhysPages) return -1;
-      return pageFrame * PageSize + offset;
-   }
-   else return -1;
+    if ((vpn < KernelPageTableSize) && KernelPageTable[vpn].valid) {
+	entry = &KernelPageTable[vpn];
+	pageFrame = entry->physicalPage;
+	if (pageFrame >= NumPhysPages) return -1;
+	return pageFrame * PageSize + offset;
+    }
+    else return -1;
 }

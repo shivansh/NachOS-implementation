@@ -50,18 +50,17 @@
 #include "copyright.h"
 #undef MAIN
 
-#include "utility.h"
 #include "system.h"
-
+#include "utility.h"
 
 // External functions used by this file
 
-extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
-extern void Print(char *file), PerformanceTest(void);
-extern void LaunchUserProcess(char *file), ConsoleTest(char *in, char *out);
+extern void ThreadTest(void), Copy(char*unixFile, char*nachosFile);
+extern void Print(char*file), PerformanceTest(void);
+extern void LaunchUserProcess(char*file), ConsoleTest(char*in, char*out);
 extern void MailTest(int networkID);
 
-extern void ReadInputAndFork(char *file);
+extern void ReadInputAndFork(char* file);
 
 //----------------------------------------------------------------------
 // main
@@ -78,105 +77,105 @@ extern void ReadInputAndFork(char *file);
 //----------------------------------------------------------------------
 
 int
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-    int argCount;			// the number of arguments
-					// for a particular command
+    int argCount;  // the number of arguments
+                   // for a particular command
 
     int schedPriority = MAX_NICE_PRIORITY;
 
     DEBUG('t', "Entering main");
-    (void) Initialize(argc, argv);
+    (void)Initialize(argc, argv);
 
 #ifdef THREADS
     ThreadTest();
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
-	argCount = 1;
-        if (!strcmp(*argv, "-z"))               // print copyright
-            printf (copyright);
+        argCount = 1;
+        if (!strcmp(*argv, "-z"))  // print copyright
+            printf(copyright);
 #ifdef USER_PROGRAM
-        if (!strcmp(*argv, "-A")) {		// read scheduling algorithm
-           schedulingAlgo = atoi(*(argv + 1));
-           argCount = 2;
-           ASSERT((schedulingAlgo > 0) && (schedulingAlgo <= 4));
-           if ((schedulingAlgo == ROUND_ROBIN) || (schedulingAlgo == UNIX_SCHED)) {
-              ASSERT (SCHED_QUANTUM > 0);
-           }
-           if (schedulingAlgo == UNIX_SCHED) {
-              currentThread->SetBasePriority(schedPriority+DEFAULT_BASE_PRIORITY);
-              currentThread->SetPriority(schedPriority+DEFAULT_BASE_PRIORITY);
-              currentThread->SetUsage(0);
-           }
+        if (!strcmp(*argv, "-A")) {  // read scheduling algorithm
+            schedulingAlgo = atoi(*(argv + 1));
+            argCount       = 2;
+            ASSERT((schedulingAlgo > 0) && (schedulingAlgo <= 4));
+            if ((schedulingAlgo == ROUND_ROBIN) || (schedulingAlgo == UNIX_SCHED)) {
+                ASSERT(SCHED_QUANTUM > 0);
+            }
+            if (schedulingAlgo == UNIX_SCHED) {
+                currentThread->SetBasePriority(schedPriority + DEFAULT_BASE_PRIORITY);
+                currentThread->SetPriority(schedPriority + DEFAULT_BASE_PRIORITY);
+                currentThread->SetUsage(0);
+            }
         } else if (!strcmp(*argv, "-P")) {
             schedPriority = atoi(*(argv + 1));
-            argCount = 2;
+            argCount      = 2;
             ASSERT((schedPriority >= 0) && (schedPriority <= 100));
-            currentThread->SetBasePriority(schedPriority+DEFAULT_BASE_PRIORITY);
-            currentThread->SetPriority(schedPriority+DEFAULT_BASE_PRIORITY);
+            currentThread->SetBasePriority(schedPriority + DEFAULT_BASE_PRIORITY);
+            currentThread->SetPriority(schedPriority + DEFAULT_BASE_PRIORITY);
             currentThread->SetUsage(0);
-        } else if (!strcmp(*argv, "-x")) {        	// run a user program
-	    ASSERT(argc > 1);
+        } else if (!strcmp(*argv, "-x")) {  // run a user program
+            ASSERT(argc > 1);
             LaunchUserProcess(*(argv + 1));
             argCount = 2;
-        } else if (!strcmp(*argv, "-c")) {      // test the console
-	    if (argc == 1)
-	        ConsoleTest(NULL, NULL);
-	    else {
-		ASSERT(argc > 2);
-	        ConsoleTest(*(argv + 1), *(argv + 2));
-	        argCount = 3;
-	    }
-	    interrupt->Halt();		// once we start the console, then
-					// Nachos will loop forever waiting
-					// for console input
-	} else if (!strcmp(*argv, "-F")) {	// test multiprogramming
-            ASSERT (argc > 1);
+        } else if (!strcmp(*argv, "-c")) {  // test the console
+            if (argc == 1)
+                ConsoleTest(NULL, NULL);
+            else {
+                ASSERT(argc > 2);
+                ConsoleTest(*(argv + 1), *(argv + 2));
+                argCount = 3;
+            }
+            interrupt->Halt();  // once we start the console, then
+            // Nachos will loop forever waiting
+            // for console input
+        } else if (!strcmp(*argv, "-F")) {  // test multiprogramming
+            ASSERT(argc > 1);
             ReadInputAndFork(*(argv + 1));
             argCount = 2;
         }
-#endif // USER_PROGRAM
+#endif  // USER_PROGRAM
 #ifdef FILESYS
-	if (!strcmp(*argv, "-cp")) { 		// copy from UNIX to Nachos
-	    ASSERT(argc > 2);
-	    Copy(*(argv + 1), *(argv + 2));
-	    argCount = 3;
-	} else if (!strcmp(*argv, "-p")) {	// print a Nachos file
-	    ASSERT(argc > 1);
-	    Print(*(argv + 1));
-	    argCount = 2;
-	} else if (!strcmp(*argv, "-r")) {	// remove Nachos file
-	    ASSERT(argc > 1);
-	    fileSystem->Remove(*(argv + 1));
-	    argCount = 2;
-	} else if (!strcmp(*argv, "-l")) {	// list Nachos directory
+        if (!strcmp(*argv, "-cp")) {  // copy from UNIX to Nachos
+            ASSERT(argc > 2);
+            Copy(*(argv + 1), *(argv + 2));
+            argCount = 3;
+        } else if (!strcmp(*argv, "-p")) {  // print a Nachos file
+            ASSERT(argc > 1);
+            Print(*(argv + 1));
+            argCount = 2;
+        } else if (!strcmp(*argv, "-r")) {  // remove Nachos file
+            ASSERT(argc > 1);
+            fileSystem->Remove(*(argv + 1));
+            argCount = 2;
+        } else if (!strcmp(*argv, "-l")) {  // list Nachos directory
             fileSystem->List();
-	} else if (!strcmp(*argv, "-D")) {	// print entire filesystem
+        } else if (!strcmp(*argv, "-D")) {  // print entire filesystem
             fileSystem->Print();
-	} else if (!strcmp(*argv, "-t")) {	// performance test
+        } else if (!strcmp(*argv, "-t")) {  // performance test
             PerformanceTest();
-	}
-#endif // FILESYS
+        }
+#endif  // FILESYS
 #ifdef NETWORK
         if (!strcmp(*argv, "-o")) {
-	    ASSERT(argc > 1);
-            Delay(2); 				// delay for 2 seconds
-						// to give the user time to
-						// start up another nachos
+            ASSERT(argc > 1);
+            Delay(2);  // delay for 2 seconds
+                       // to give the user time to
+                       // start up another nachos
             MailTest(atoi(*(argv + 1)));
             argCount = 2;
         }
-#endif // NETWORK
+#endif  // NETWORK
     }
 
-    currentThread->FinishThread();	// NOTE: if the procedure "main"
-				// returns, then the program "nachos"
-				// will exit (as any other normal program
-				// would).  But there may be other
-				// threads on the ready list.  We switch
-				// to those threads by saying that the
-				// "main" thread is finished, preventing
-				// it from returning.
-    return(0);			// Not reached...
+    currentThread->FinishThread();  // NOTE: if the procedure "main"
+    // returns, then the program "nachos"
+    // will exit (as any other normal program
+    // would).  But there may be other
+    // threads on the ready list.  We switch
+    // to those threads by saying that the
+    // "main" thread is finished, preventing
+    // it from returning.
+    return (0);  // Not reached...
 }

@@ -27,7 +27,7 @@ SimpleThread(int which)
     int num;
 
     for (num = 0; num < 5; num++) {
-	printf("*** thread %d looped %d times\n", which, num);
+        printf("*** thread %d looped %d times\n", which, num);
         currentThread->YieldCPU();
     }
 }
@@ -43,9 +43,8 @@ ThreadTest()
 {
     DEBUG('t', "Entering SimpleTest");
 
-    NachOSThread *t = new NachOSThread("forked thread", GET_NICE_FROM_PARENT);
+    NachOSThread* t = new NachOSThread("forked thread", GET_NICE_FROM_PARENT);
 
     t->ThreadFork(SimpleThread, 1);
     SimpleThread(0);
 }
-

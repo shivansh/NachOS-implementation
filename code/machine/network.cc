@@ -12,34 +12,45 @@
 #include "system.h"
 
 // Dummy functions because C++ can't call member functions indirectly
-static void NetworkReadPoll(int arg)
-{ Network *net = (Network *)arg; net->CheckPktAvail(); }
-static void NetworkSendDone(int arg)
-{ Network *net = (Network *)arg; net->SendDone(); }
+static void
+NetworkReadPoll(int arg)
+{
+    Network* net = (Network*)arg;
+    net->CheckPktAvail();
+}
+static void
+NetworkSendDone(int arg)
+{
+    Network* net = (Network*)arg;
+    net->SendDone();
+}
 
 // Initialize the network emulation
 //   addr is used to generate the socket name
 //   reliability says whether we drop packets to emulate unreliable links
 //   readAvail, writeDone, callArg -- analogous to console
 Network::Network(NetworkAddress addr, double reliability,
-	VoidFunctionPtr readAvail, VoidFunctionPtr writeDone, int callArg)
+    VoidFunctionPtr readAvail, VoidFunctionPtr writeDone, int callArg)
 {
     ident = addr;
-    if (reliability < 0) chanceToWork = 0;
-    else if (reliability > 1) chanceToWork = 1;
-    else chanceToWork = reliability;
+    if (reliability < 0)
+        chanceToWork = 0;
+    else if (reliability > 1)
+        chanceToWork = 1;
+    else
+        chanceToWork = reliability;
 
     // set up the stuff to emulate asynchronous interrupts
     writeHandler = writeDone;
-    readHandler = readAvail;
-    handlerArg = callArg;
-    sendBusy = FALSE;
+    readHandler  = readAvail;
+    handlerArg   = callArg;
+    sendBusy     = FALSE;
     inHdr.length = 0;
 
     sock = OpenSocket();
     sprintf(sockName, "SOCKET_%d", (int)addr);
-    AssignNameToSocket(sockName, sock);		 // Bind socket to a filename
-						 // in the current directory.
+    AssignNameToSocket(sockName, sock);  // Bind socket to a filename
+                                         // in the current directory.
 
     // start polling for incoming packets
     interrupt->Schedule(NetworkReadPoll, (int)this, NetworkTime, NetworkRecvInt);
@@ -60,23 +71,23 @@ Network::CheckPktAvail()
     // schedule the next time to poll for a packet
     interrupt->Schedule(NetworkReadPoll, (int)this, NetworkTime, NetworkRecvInt);
 
-    if (inHdr.length != 0) 	// do nothing if packet is already buffered
-	return;
-    if (!PollSocket(sock)) 	// do nothing if no packet to be read
-	return;
+    if (inHdr.length != 0)  // do nothing if packet is already buffered
+        return;
+    if (!PollSocket(sock))  // do nothing if no packet to be read
+        return;
 
     // otherwise, read packet in
-    char *buffer = new char[MaxWireSize];
+    char* buffer = new char[MaxWireSize];
     ReadFromSocket(sock, buffer, MaxWireSize);
 
     // divide packet into header and data
-    inHdr = *(PacketHeader *)buffer;
+    inHdr = *(PacketHeader*)buffer;
     ASSERT((inHdr.to == ident) && (inHdr.length <= MaxPacketSize));
     bcopy(buffer + sizeof(PacketHeader), inbox, inHdr.length);
-    delete []buffer ;
+    delete[] buffer;
 
     DEBUG('n', "Network received packet from %d, length %d...\n",
-	  				(int) inHdr.from, inHdr.length);
+        (int)inHdr.from, inHdr.length);
     stats->numPacketsRecvd++;
 
     // tell post office that the packet has arrived
@@ -105,22 +116,22 @@ Network::Send(PacketHeader hdr, char* data)
     sprintf(toName, "SOCKET_%d", (int)hdr.to);
 
     ASSERT((sendBusy == FALSE) && (hdr.length > 0)
-		&& (hdr.length <= MaxPacketSize) && (hdr.from == ident));
+        && (hdr.length <= MaxPacketSize) && (hdr.from == ident));
     DEBUG('n', "Sending to addr %d, %d bytes... ", hdr.to, hdr.length);
 
     interrupt->Schedule(NetworkSendDone, (int)this, NetworkTime, NetworkSendInt);
 
-    if (Random() % 100 >= chanceToWork * 100) { // emulate a lost packet
-	DEBUG('n', "oops, lost it!\n");
-	return;
+    if (Random() % 100 >= chanceToWork * 100) {  // emulate a lost packet
+        DEBUG('n', "oops, lost it!\n");
+        return;
     }
 
     // concatenate hdr and data into a single buffer, and send it out
-    char *buffer = new char[MaxWireSize];
-    *(PacketHeader *)buffer = hdr;
+    char* buffer           = new char[MaxWireSize];
+    *(PacketHeader*)buffer = hdr;
     bcopy(data, buffer + sizeof(PacketHeader), hdr.length);
     SendToSocket(sock, buffer, MaxWireSize, toName);
-    delete []buffer;
+    delete[] buffer;
 }
 
 // read a packet, if one is buffered
@@ -131,6 +142,6 @@ Network::Receive(char* data)
 
     inHdr.length = 0;
     if (hdr.length != 0)
-    	bcopy(inbox, data, hdr.length);
+        bcopy(inbox, data, hdr.length);
     return hdr;
 }

@@ -18,8 +18,8 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
-#include "copyright.h"
 #include "scheduler.h"
+#include "copyright.h"
 #include "system.h"
 
 //----------------------------------------------------------------------
@@ -29,7 +29,7 @@
 
 ProcessScheduler::ProcessScheduler()
 {
-    listOfReadyThreads = new List;
+    listOfReadyThreads           = new List;
     empty_ready_queue_start_time = -1;
 }
 
@@ -52,37 +52,36 @@ ProcessScheduler::~ProcessScheduler()
 //----------------------------------------------------------------------
 
 void
-ProcessScheduler::MoveThreadToReadyQueue (NachOSThread *thread)
+ProcessScheduler::MoveThreadToReadyQueue(NachOSThread* thread)
 {
     DEBUG('t', "Putting thread %s with pid %d on ready list.\n", thread->getName(), thread->GetPID());
 
     if (thread->getStatus() == RUNNING) {
-       stats->cpu_time += (stats->totalTicks - cpu_burst_start_time);
-       if ((stats->totalTicks - cpu_burst_start_time) > 0) {
-          stats->cpu_burst_count++;
-          stats->preemptive_switch++;
-          if ((stats->totalTicks - cpu_burst_start_time) > stats->max_cpu_burst) {
-             stats->max_cpu_burst = (stats->totalTicks - cpu_burst_start_time);
-          }
-          if ((stats->totalTicks - cpu_burst_start_time) < stats->min_cpu_burst) {
-             stats->min_cpu_burst = (stats->totalTicks - cpu_burst_start_time);
-          }
-          if (schedulingAlgo == UNIX_SCHED) {
-             UpdateThreadPriority();
-          }
-          else if (schedulingAlgo == NON_PREEMPTIVE_SJF) {
-             stats->burstEstimateError += abs(stats->totalTicks - cpu_burst_start_time - thread->GetPriority());
-             thread->SetPriority((int)(ALPHA*(stats->totalTicks - cpu_burst_start_time) + (1-ALPHA)*thread->GetPriority()));
-          }
-       }
+        stats->cpu_time += (stats->totalTicks - cpu_burst_start_time);
+        if ((stats->totalTicks - cpu_burst_start_time) > 0) {
+            stats->cpu_burst_count++;
+            stats->preemptive_switch++;
+            if ((stats->totalTicks - cpu_burst_start_time) > stats->max_cpu_burst) {
+                stats->max_cpu_burst = (stats->totalTicks - cpu_burst_start_time);
+            }
+            if ((stats->totalTicks - cpu_burst_start_time) < stats->min_cpu_burst) {
+                stats->min_cpu_burst = (stats->totalTicks - cpu_burst_start_time);
+            }
+            if (schedulingAlgo == UNIX_SCHED) {
+                UpdateThreadPriority();
+            } else if (schedulingAlgo == NON_PREEMPTIVE_SJF) {
+                stats->burstEstimateError += abs(stats->totalTicks - cpu_burst_start_time - thread->GetPriority());
+                thread->SetPriority((int)(ALPHA * (stats->totalTicks - cpu_burst_start_time) + (1 - ALPHA) * thread->GetPriority()));
+            }
+        }
     }
     thread->setStatus(READY);
     thread->SetWaitStartTime(stats->totalTicks);
     if (listOfReadyThreads->IsEmpty() && (empty_ready_queue_start_time != -1)) {
-       stats->empty_ready_queue_time += (stats->totalTicks - empty_ready_queue_start_time);
-       empty_ready_queue_start_time = -1;
+        stats->empty_ready_queue_time += (stats->totalTicks - empty_ready_queue_start_time);
+        empty_ready_queue_start_time = -1;
     }
-    listOfReadyThreads->Append((void *)thread);
+    listOfReadyThreads->Append((void*)thread);
 }
 
 //----------------------------------------------------------------------
@@ -93,14 +92,13 @@ ProcessScheduler::MoveThreadToReadyQueue (NachOSThread *thread)
 //	NachOSThread is removed from the ready list.
 //----------------------------------------------------------------------
 
-NachOSThread *
-ProcessScheduler::SelectNextReadyThread ()
+NachOSThread*
+ProcessScheduler::SelectNextReadyThread()
 {
-    if ((schedulingAlgo == UNIX_SCHED) || (schedulingAlgo == NON_PREEMPTIVE_SJF)){
-       return (NachOSThread *)listOfReadyThreads->GetMinPriorityThread();
-    }
-    else {
-       return (NachOSThread *)listOfReadyThreads->Remove();
+    if ((schedulingAlgo == UNIX_SCHED) || (schedulingAlgo == NON_PREEMPTIVE_SJF)) {
+        return (NachOSThread*)listOfReadyThreads->GetMinPriorityThread();
+    } else {
+        return (NachOSThread*)listOfReadyThreads->Remove();
     }
 }
 
@@ -119,29 +117,29 @@ ProcessScheduler::SelectNextReadyThread ()
 //----------------------------------------------------------------------
 
 void
-ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
+ProcessScheduler::ScheduleThread(NachOSThread* nextThread)
 {
-    NachOSThread *oldThread = currentThread;
+    NachOSThread* oldThread = currentThread;
 
     cpu_burst_start_time = stats->totalTicks;
     nextThread->SetCPUBurstStartTime(cpu_burst_start_time);
     stats->total_wait_time += (stats->totalTicks - nextThread->GetWaitStartTime());
 
-#ifdef USER_PROGRAM			// ignore until running user programs
-    if (currentThread->space != NULL) {	// if this thread is a user program,
-        currentThread->SaveUserState(); // save the user's CPU registers
-	currentThread->space->SaveContextOnSwitch();
+#ifdef USER_PROGRAM                      // ignore until running user programs
+    if (currentThread->space != NULL) {  // if this thread is a user program,
+        currentThread->SaveUserState();  // save the user's CPU registers
+        currentThread->space->SaveContextOnSwitch();
     }
 #endif
 
-    oldThread->CheckOverflow();		    // check if the old thread
-					    // had an undetected stack overflow
+    oldThread->CheckOverflow();  // check if the old thread
+                                 // had an undetected stack overflow
 
-    currentThread = nextThread;		    // switch to the next thread
-    currentThread->setStatus(RUNNING);      // nextThread is now running
+    currentThread = nextThread;         // switch to the next thread
+    currentThread->setStatus(RUNNING);  // nextThread is now running
 
     DEBUG('t', "Switching from thread \"%s\" with pid %d to thread \"%s\" with pid %d\n",
-	  oldThread->getName(), oldThread->GetPID(), nextThread->getName(), nextThread->GetPID());
+        oldThread->getName(), oldThread->GetPID(), nextThread->getName(), nextThread->GetPID());
 
     // This is a machine-dependent assembly language routine defined
     // in switch.s.  You may have to think
@@ -158,13 +156,13 @@ ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
     // point, we were still running on the old thread's stack!
     if (threadToBeDestroyed != NULL) {
         delete threadToBeDestroyed;
-	threadToBeDestroyed = NULL;
+        threadToBeDestroyed = NULL;
     }
 
 #ifdef USER_PROGRAM
-    if (currentThread->space != NULL) {		// if there is an address space
-        currentThread->RestoreUserState();     // to restore, do it.
-	currentThread->space->RestoreContextOnSwitch();
+    if (currentThread->space != NULL) {     // if there is an address space
+        currentThread->RestoreUserState();  // to restore, do it.
+        currentThread->space->RestoreContextOnSwitch();
     }
 #endif
 }
@@ -176,7 +174,7 @@ ProcessScheduler::ScheduleThread (NachOSThread *nextThread)
 //----------------------------------------------------------------------
 
 void
-ProcessScheduler::Tail ()
+ProcessScheduler::Tail()
 {
     // If the old thread gave up the processor because it was finishing,
     // we need to delete its carcass.  Note we cannot delete the thread
@@ -191,8 +189,8 @@ ProcessScheduler::Tail ()
     }
 
 #ifdef USER_PROGRAM
-    if (currentThread->space != NULL) {         // if there is an address space
-        currentThread->RestoreUserState();     // to restore, do it.
+    if (currentThread->space != NULL) {     // if there is an address space
+        currentThread->RestoreUserState();  // to restore, do it.
         currentThread->space->RestoreContextOnSwitch();
     }
 #endif
@@ -207,13 +205,13 @@ void
 ProcessScheduler::Print()
 {
     printf("Ready list contents:\n");
-    listOfReadyThreads->Mapcar((VoidFunctionPtr) ThreadPrint);
+    listOfReadyThreads->Mapcar((VoidFunctionPtr)ThreadPrint);
 }
 
 void
-ProcessScheduler::SetEmptyReadyQueueStartTime (int ticks)
+ProcessScheduler::SetEmptyReadyQueueStartTime(int ticks)
 {
-   empty_ready_queue_start_time = ticks;
+    empty_ready_queue_start_time = ticks;
 }
 
 //-------------------------------------------------------------------------
@@ -221,31 +219,31 @@ ProcessScheduler::SetEmptyReadyQueueStartTime (int ticks)
 //      Updates the priority of all active threads as in the UNIX scheduler
 //--------------------------------------------------------------------------
 void
-ProcessScheduler::UpdateThreadPriority (void)
+ProcessScheduler::UpdateThreadPriority(void)
 {
-   unsigned i;
-   int this_cpu_burst_duration = stats->totalTicks - cpu_burst_start_time;
-   ASSERT(this_cpu_burst_duration > 0);
-   unsigned currentPID = currentThread->GetPID();
+    unsigned i;
+    int      this_cpu_burst_duration = stats->totalTicks - cpu_burst_start_time;
+    ASSERT(this_cpu_burst_duration > 0);
+    unsigned currentPID = currentThread->GetPID();
 
-   // First we update the currentThread priority
+    // First we update the currentThread priority
 
-   int currentThreadUsage = currentThread->GetUsage();
-   currentThreadUsage = (currentThreadUsage + this_cpu_burst_duration) >> 1;
-   int currentThreadPriority = currentThread->GetBasePriority() + (currentThreadUsage >> 1);
-   currentThread->SetUsage(currentThreadUsage);
-   currentThread->SetPriority(currentThreadPriority);
+    int currentThreadUsage    = currentThread->GetUsage();
+    currentThreadUsage        = (currentThreadUsage + this_cpu_burst_duration) >> 1;
+    int currentThreadPriority = currentThread->GetBasePriority() + (currentThreadUsage >> 1);
+    currentThread->SetUsage(currentThreadUsage);
+    currentThread->SetPriority(currentThreadPriority);
 
-   // Update everybody else
+    // Update everybody else
 
-   for (i=0; i<thread_index; i++) {
-      if ((i != currentPID) && !exitThreadArray[i]) {
-         ASSERT(threadArray[i] != NULL);
-         currentThreadUsage = threadArray[i]->GetUsage();
-         currentThreadUsage = currentThreadUsage >> 1;
-         currentThreadPriority = threadArray[i]->GetBasePriority() + (currentThreadUsage >> 1);
-         threadArray[i]->SetUsage(currentThreadUsage);
-         threadArray[i]->SetPriority(currentThreadPriority);
-      }
-   }
+    for (i = 0; i < thread_index; i++) {
+        if ((i != currentPID) && !exitThreadArray[i]) {
+            ASSERT(threadArray[i] != NULL);
+            currentThreadUsage    = threadArray[i]->GetUsage();
+            currentThreadUsage    = currentThreadUsage >> 1;
+            currentThreadPriority = threadArray[i]->GetBasePriority() + (currentThreadUsage >> 1);
+            threadArray[i]->SetUsage(currentThreadUsage);
+            threadArray[i]->SetPriority(currentThreadPriority);
+        }
+    }
 }

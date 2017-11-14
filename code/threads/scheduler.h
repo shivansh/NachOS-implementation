@@ -18,27 +18,29 @@
 // thread is running, and which threads are ready but not running.
 
 class ProcessScheduler {
-  public:
-    ProcessScheduler();			// Initialize list of ready threads
-    ~ProcessScheduler();			// De-allocate ready list
+public:
+    ProcessScheduler();   // Initialize list of ready threads
+    ~ProcessScheduler();  // De-allocate ready list
 
-    void MoveThreadToReadyQueue(NachOSThread* thread);	// NachOSThread can be dispatched.
-    NachOSThread* SelectNextReadyThread();		// Dequeue first thread on the ready
-					// list, if any, and return thread.
-    void ScheduleThread(NachOSThread* nextThread);	// Cause nextThread to start running
-    void Print();			// Print contents of ready list
+    void MoveThreadToReadyQueue(
+        NachOSThread* thread);              // NachOSThread can be dispatched.
+    NachOSThread* SelectNextReadyThread();  // Dequeue first thread on the ready
+    // list, if any, and return thread.
+    void
+    ScheduleThread(NachOSThread* nextThread);  // Cause nextThread to start running
+    void Print();                              // Print contents of ready list
 
-    void Tail();			// Used by fork()
+    void Tail();  // Used by fork()
 
-    void SetEmptyReadyQueueStartTime (int ticks);
+    void SetEmptyReadyQueueStartTime(int ticks);
 
-    void UpdateThreadPriority (void);	// Used by the UNIX scheduler
+    void UpdateThreadPriority(void);  // Used by the UNIX scheduler
 
-  private:
-    List *listOfReadyThreads;  		// queue of threads that are ready to run,
-				// but not running
+private:
+    List* listOfReadyThreads;  // queue of threads that are ready to run,
+    // but not running
 
     int empty_ready_queue_start_time;
 };
 
-#endif // SCHEDULER_H
+#endif  // SCHEDULER_H

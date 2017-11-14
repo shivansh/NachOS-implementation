@@ -46,48 +46,48 @@
 //
 // The track buffer simulation can be disabled by compiling with -DNOTRACKBUF
 
-#define SectorSize 		128	// number of bytes per disk sector
-#define SectorsPerTrack 	32	// number of sectors per disk track
-#define NumTracks 		32	// number of tracks per disk
-#define NumSectors 		(SectorsPerTrack * NumTracks)
-					// total # of sectors per disk
+#define SectorSize 128      // number of bytes per disk sector
+#define SectorsPerTrack 32  // number of sectors per disk track
+#define NumTracks 32        // number of tracks per disk
+#define NumSectors (SectorsPerTrack * NumTracks)
+// total # of sectors per disk
 
 class Disk {
-  public:
+public:
     Disk(char* name, VoidFunctionPtr callWhenDone, int callArg);
-    					// Create a simulated disk.
-					// Invoke (*callWhenDone)(callArg)
-					// every time a request completes.
-    ~Disk();				// Deallocate the disk.
+    // Create a simulated disk.
+    // Invoke (*callWhenDone)(callArg)
+    // every time a request completes.
+    ~Disk();  // Deallocate the disk.
 
     void ReadRequest(int sectorNumber, char* data);
-    					// Read/write an single disk sector.
-					// These routines send a request to
-    					// the disk and return immediately.
-    					// Only one request allowed at a time!
+    // Read/write an single disk sector.
+    // These routines send a request to
+    // the disk and return immediately.
+    // Only one request allowed at a time!
     void WriteRequest(int sectorNumber, char* data);
 
-    void HandleInterrupt();		// Interrupt handler, invoked when
-					// disk request finishes.
+    void HandleInterrupt();  // Interrupt handler, invoked when
+    // disk request finishes.
 
     int ComputeLatency(int newSector, bool writing);
-    					// Return how long a request to
-					// newSector will take:
-					// (seek + rotational delay + transfer)
+    // Return how long a request to
+    // newSector will take:
+    // (seek + rotational delay + transfer)
 
-  private:
-    int fileno;				// UNIX file number for simulated disk
-    VoidFunctionPtr handler;		// Interrupt handler, to be invoked
-					// when any disk request finishes
-    int handlerArg;			// Argument to interrupt handler
-    bool active;     			// Is a disk operation in progress?
-    int lastSector;			// The previous disk request
-    int bufferInit;			// When the track buffer started
-					// being loaded
+private:
+    int             fileno;   // UNIX file number for simulated disk
+    VoidFunctionPtr handler;  // Interrupt handler, to be invoked
+    // when any disk request finishes
+    int  handlerArg;  // Argument to interrupt handler
+    bool active;      // Is a disk operation in progress?
+    int  lastSector;  // The previous disk request
+    int  bufferInit;  // When the track buffer started
+    // being loaded
 
-    int TimeToSeek(int newSector, int *rotate); // time to get to the new track
-    int ModuloDiff(int to, int from);        // # sectors between to and from
+    int TimeToSeek(int newSector, int* rotate);  // time to get to the new track
+    int ModuloDiff(int to, int from);            // # sectors between to and from
     void UpdateLast(int newSector);
 };
 
-#endif // DISK_H
+#endif  // DISK_H

@@ -21,8 +21,8 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
-#include "copyright.h"
 #include "synch.h"
+#include "copyright.h"
 #include "system.h"
 
 //----------------------------------------------------------------------
@@ -35,7 +35,7 @@
 
 Semaphore::Semaphore(char* debugName, int initialValue)
 {
-    name = debugName;
+    name  = debugName;
     value = initialValue;
     queue = new List;
 }
@@ -64,16 +64,16 @@ Semaphore::~Semaphore()
 void
 Semaphore::P()
 {
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);  // disable interrupts
 
-    while (value == 0) { 			// semaphore not available
-	queue->Append((void *)currentThread);	// so go to sleep
-	currentThread->PutThreadToSleep();
+    while (value == 0) {                      // semaphore not available
+        queue->Append((void*)currentThread);  // so go to sleep
+        currentThread->PutThreadToSleep();
     }
-    value--; 					// semaphore available,
-						// consume its value
+    value--;  // semaphore available,
+              // consume its value
 
-    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+    (void)interrupt->SetLevel(oldLevel);  // re-enable interrupts
 }
 
 //----------------------------------------------------------------------
@@ -87,14 +87,14 @@ Semaphore::P()
 void
 Semaphore::V()
 {
-    NachOSThread *thread;
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    NachOSThread* thread;
+    IntStatus     oldLevel = interrupt->SetLevel(IntOff);
 
-    thread = (NachOSThread *)queue->Remove();
-    if (thread != NULL)	   // make thread ready, consuming the V immediately
-	scheduler->MoveThreadToReadyQueue(thread);
+    thread = (NachOSThread*)queue->Remove();
+    if (thread != NULL)  // make thread ready, consuming the V immediately
+        scheduler->MoveThreadToReadyQueue(thread);
     value++;
-    (void) interrupt->SetLevel(oldLevel);
+    (void)interrupt->SetLevel(oldLevel);
 }
 
 // Dummy functions -- so we can compile our later assignments
@@ -102,11 +102,27 @@ Semaphore::V()
 // the test case in the network assignment won't work!
 Lock::Lock(char* debugName) {}
 Lock::~Lock() {}
-void Lock::Acquire() {}
-void Lock::Release() {}
+void
+Lock::Acquire()
+{
+}
+void
+Lock::Release()
+{
+}
 
-Condition::Condition(char* debugName) { }
-Condition::~Condition() { }
-void Condition::Wait(Lock* conditionLock) { ASSERT(FALSE); }
-void Condition::Signal(Lock* conditionLock) { }
-void Condition::Broadcast(Lock* conditionLock) { }
+Condition::Condition(char* debugName) {}
+Condition::~Condition() {}
+void
+Condition::Wait(Lock* conditionLock)
+{
+    ASSERT(FALSE);
+}
+void
+Condition::Signal(Lock* conditionLock)
+{
+}
+void
+Condition::Broadcast(Lock* conditionLock)
+{
+}

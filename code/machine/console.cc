@@ -13,15 +13,23 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
-#include "copyright.h"
 #include "console.h"
+#include "copyright.h"
 #include "system.h"
 
 // Dummy functions because C++ is weird about pointers to member functions
-static void ConsoleReadPoll(int c)
-{ Console *console = (Console *)c; console->CheckCharAvail(); }
-static void ConsoleWriteDone(int c)
-{ Console *console = (Console *)c; console->WriteDone(); }
+static void
+ConsoleReadPoll(int c)
+{
+    Console* console = (Console*)c;
+    console->CheckCharAvail();
+}
+static void
+ConsoleWriteDone(int c)
+{
+    Console* console = (Console*)c;
+    console->WriteDone();
+}
 
 //----------------------------------------------------------------------
 // Console::Console
@@ -36,24 +44,24 @@ static void ConsoleWriteDone(int c)
 //		output
 //----------------------------------------------------------------------
 
-Console::Console(char *readFile, char *writeFile, VoidFunctionPtr readAvail,
-		VoidFunctionPtr writeDone, int callArg)
+Console::Console(char* readFile, char* writeFile, VoidFunctionPtr readAvail,
+    VoidFunctionPtr writeDone, int callArg)
 {
     if (readFile == NULL)
-	readFileNo = 0;					// keyboard = stdin
+        readFileNo = 0;  // keyboard = stdin
     else
-    	readFileNo = OpenForReadWrite(readFile, TRUE);	// should be read-only
+        readFileNo = OpenForReadWrite(readFile, TRUE);  // should be read-only
     if (writeFile == NULL)
-	writeFileNo = 1;				// display = stdout
+        writeFileNo = 1;  // display = stdout
     else
-    	writeFileNo = OpenForWrite(writeFile);
+        writeFileNo = OpenForWrite(writeFile);
 
     // set up the stuff to emulate asynchronous interrupts
     writeHandler = writeDone;
-    readHandler = readAvail;
-    handlerArg = callArg;
-    putBusy = FALSE;
-    incoming = EOF;
+    readHandler  = readAvail;
+    handlerArg   = callArg;
+    putBusy      = FALSE;
+    incoming     = EOF;
 
     // start polling for incoming packets
     interrupt->Schedule(ConsoleReadPoll, (int)this, ConsoleTime, ConsoleReadInt);
@@ -67,9 +75,9 @@ Console::Console(char *readFile, char *writeFile, VoidFunctionPtr readAvail,
 Console::~Console()
 {
     if (readFileNo != 0)
-	Close(readFileNo);
+        Close(readFileNo);
     if (writeFileNo != 1)
-	Close(writeFileNo);
+        Close(writeFileNo);
 }
 
 //----------------------------------------------------------------------
@@ -90,15 +98,15 @@ Console::CheckCharAvail()
 
     // schedule the next time to poll for a packet
     interrupt->Schedule(ConsoleReadPoll, (int)this, ConsoleTime,
-			ConsoleReadInt);
+        ConsoleReadInt);
 
     // do nothing if character is already buffered, or none to be read
     if ((incoming != EOF) || !PollFile(readFileNo))
-	return;
+        return;
 
     // otherwise, read character and tell user about it
     Read(readFileNo, &c, sizeof(char));
-    incoming = c ;
+    incoming = c;
     stats->numConsoleCharsRead++;
     (*readHandler)(handlerArg);
 }
@@ -127,10 +135,10 @@ Console::WriteDone()
 char
 Console::GetChar()
 {
-   char ch = incoming;
+    char ch = incoming;
 
-   incoming = EOF;
-   return ch;
+    incoming = EOF;
+    return ch;
 }
 
 //----------------------------------------------------------------------
@@ -146,5 +154,5 @@ Console::PutChar(char ch)
     WriteFile(writeFileNo, &ch, sizeof(char));
     putBusy = TRUE;
     interrupt->Schedule(ConsoleWriteDone, (int)this, ConsoleTime,
-					ConsoleWriteInt);
+        ConsoleWriteInt);
 }
