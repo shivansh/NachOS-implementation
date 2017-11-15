@@ -270,17 +270,19 @@ ProcessAddressSpace::PageFaultHandler(unsigned accessedVirtAddr)
     startVirtAddr = vpn * PageSize;
     endVirtAddress = startVirtAddr + PageSize - 1;
 
+    unsigned newPhysicalPage = GetNextFreePage();
+
     // Update page fault count.
     stats->numPageFaults++;
 
     // Update the page table entry for this virtual page.
     // TODO Check if the indexing is correct -
     //       -- numPagesAllocated vs (numPagesAllocated-1).
-    KernelPageTable[vpn].physicalPage = numPagesAllocated;
+    KernelPageTable[vpn].physicalPage = newPhysicalPage;
     KernelPageTable[vpn].valid = TRUE;
 
     // Zero out the entire page.
-    bzero(&(machine->mainMemory[numPagesAllocated*PageSize]), PageSize);
+    bzero(&(machine->mainMemory[newPhysicalPage*PageSize]), PageSize);
 
     // Reference for the following copy mechanism -
     // noffMagic
@@ -337,7 +339,7 @@ ProcessAddressSpace::PageFaultHandler(unsigned accessedVirtAddr)
     // associated with unique _executable, this can be made a private variable.
     if (startCopyAddress < endCopyAddress) {
         offset = startCopyAddress - startVirtAddr;
-        pageFrame = numPagesAllocated;
+        pageFrame = newPhysicalPage;
 
         printf("\n-- Before calling 'executable->ReadAt()' --\n\n");
         printf("Pointer value of the copied executable: %p\n", executable);
@@ -363,14 +365,15 @@ ProcessAddressSpace::PageFaultHandler(unsigned accessedVirtAddr)
         offset = startCopyAddress - startVirtAddr;
         // entry = &KernelPageTable[vpn];
         // pageFrame = entry->physicalPage;
-        pageFrame = numPagesAllocated;
+        pageFrame = newPhysicalPage;
         executable->ReadAt(&(machine->mainMemory[pageFrame * PageSize + offset]),
                             endCopyAddress - startCopyAddress,
                             noffH.initData.inFileAddr + (startCopyAddress - noffH.initData.virtualAddr));
     }
 
     // Increment the allocated pages.
-    numPagesAllocated++;
+    // This logic is now handled by GetNextFreePage();
+    // numPagesAllocated++;
     currentThread->SortedInsertInWaitQueue(1000 + stats->totalTicks);
 }
 
@@ -471,4 +474,12 @@ char*
 ProcessAddressSpace::GetExecutableFileName()
 {
     return executableFileName;
+}
+
+int
+ProcessAddressSpace::GetNextFreePage()
+{
+    // Check if there is a free page.
+    ASSERT(numPagesAllocated + 1 <= NumPhysPages);
+    return numPagesAllocated++;
 }

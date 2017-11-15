@@ -30,6 +30,8 @@ class ProcessAddressSpace {
 
 	void PageFaultHandler(unsigned accessedVirtAddr);
 
+	int GetNextFreePage();
+
 	~ProcessAddressSpace();			// De-allocate an address space
 
 	void InitUserModeCPURegisters();		// Initialize user-level CPU registers,

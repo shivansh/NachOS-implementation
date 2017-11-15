@@ -24,6 +24,11 @@
 #define NON_PREEMPTIVE_SJF 2
 #define ROUND_ROBIN 3
 #define UNIX_SCHED 4
+#define DEFAULT_REP 0
+#define RANDOM_REP 1
+#define FIFO_REP 2
+#define LRU_REP 3
+#define LRU_CLOCK_REP 4
 
 #define SCHED_QUANTUM \
     100  // If not a multiple of timer interval, quantum will overshoot
@@ -63,6 +68,7 @@ extern bool exitThreadArray[];  // Marks exited threads
 extern int    schedulingAlgo;  // Scheduling algorithm to simulate
 extern char** batchProcesses;  // Names of batch executables
 extern int*   priority;        // Process priority
+extern int    pageReplacementAlgo;
 
 extern int cpu_burst_start_time;   // Records the start of current CPU burst
 extern int completionTimeArray[];  // Records the completion time of all
