@@ -499,6 +499,23 @@ ProcessAddressSpace::GetNextFreePage()
     }
     else {
         // Rest of the replacement algorithms.
+        switch(pageReplacementAlgo) {
+            case RANDOM_REP:
+                freePage = Random() % NumPhysPages;
+                break;
+
+            case LRU_REP:
+                // Find the page with the least access time.
+                val = LRUAccessTime[0];
+                for (i = 0; i < NumPhysPages; i++) {
+                    if (machine->LRUAccessTime[i] < val) {
+                        // TODO Also check if the page is shared.
+                        val = machine->LRUAccessTime[i];
+                        freePage = i;
+                    }
+                }
+                break;
+        }
     }
 
     // Update the owner of the current memory location.

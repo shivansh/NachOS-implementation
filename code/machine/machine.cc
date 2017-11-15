@@ -65,9 +65,13 @@ Machine::Machine(bool debug)
         mainMemory[i] = 0;
 
     memoryOwnerThread = new int[NumPhysPages];
-    // Initially, none of the memory locations are assigned.
-    for (i = 0; i < NumPhysPages; i++)
-        memoryOwnerThread[i] = -1;
+    LRUAccessTime = new int[NumPhysPages];
+
+    for (i = 0; i < NumPhysPages; i++) {
+        memoryOwnerThread[i] = -1;      // No memory location
+                                        // is assigned initially
+        LRUAccessTime[i] = 0;
+    }
 
 
 #ifdef USE_TLB
@@ -93,6 +97,7 @@ Machine::~Machine()
 {
     delete[] mainMemory;
     delete[] memoryOwnerThread;
+    delete[] LRUAccessTime;
     if (tlb != NULL)
         delete[] tlb;
 }

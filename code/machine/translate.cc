@@ -245,6 +245,10 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	DEBUG('a', "*** frame %d > %d!\n", pageFrame, NumPhysPages);
 	return BusErrorException;
     }
+
+    // Update the pageframe access time.
+    machine->LRUAccessTime[pageFrame] = stats->totalTicks;
+
     entry->use = TRUE;		// set the use, dirty bits
     if (writing)
 	entry->dirty = TRUE;

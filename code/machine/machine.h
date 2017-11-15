@@ -164,6 +164,10 @@ public:
     int *memoryOwnerThread;       // Keeps track of the thread which is
                                   // currently using this memory location.
 
+    // TODO Check the data type of the time value,
+    // will int be enough after a long duration ??
+    int *LRUAccessTime;           // Tracks the access time for LRU.
+
     // NOTE: the hardware translation of virtual addresses in the user program
     // to physical addresses (relative to the beginning of "mainMemory")
     // can be controlled by one of:
