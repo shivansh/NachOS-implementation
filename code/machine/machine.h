@@ -161,6 +161,9 @@ public:
 
     int registers[NumTotalRegs];  // CPU registers, for executing user programs
 
+    int *memoryOwnerThread;       // Keeps track of the thread which is
+                                  // currently using this memory location.
+
     // NOTE: the hardware translation of virtual addresses in the user program
     // to physical addresses (relative to the beginning of "mainMemory")
     // can be controlled by one of:

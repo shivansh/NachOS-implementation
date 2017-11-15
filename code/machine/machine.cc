@@ -58,9 +58,17 @@ Machine::Machine(bool debug)
 
     for (i           = 0; i < NumTotalRegs; i++)
         registers[i] = 0;
+
     mainMemory       = new char[MemorySize];
+
     for (i            = 0; i < MemorySize; i++)
         mainMemory[i] = 0;
+
+    memoryOwnerThread = new int[NumPhysPages];
+    // Initially, none of the memory locations are assigned.
+    for (i = 0; i < NumPhysPages; i++)
+        memoryOwnerThread[i] = -1;
+
 
 #ifdef USE_TLB
     tlb = new TranslationEntry[TLBSize];
@@ -84,6 +92,7 @@ Machine::Machine(bool debug)
 Machine::~Machine()
 {
     delete[] mainMemory;
+    delete[] memoryOwnerThread;
     if (tlb != NULL)
         delete[] tlb;
 }

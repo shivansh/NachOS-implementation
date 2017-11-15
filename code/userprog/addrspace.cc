@@ -234,7 +234,7 @@ ProcessAddressSpace::SharedAddressSpace(int spaceSize)
     // Set up the shared pages.
     for (unsigned i = numVirtualPages; i < numSharedPages + numVirtualPages; i++) {
         sharedPageTable[i].virtualPage = i;
-        sharedPageTable[i].physicalPage = i + numPagesAllocated;
+        sharedPageTable[i].physicalPage = GetNextFreePage();
         sharedPageTable[i].valid = TRUE;
         sharedPageTable[i].use = FALSE;
         sharedPageTable[i].dirty = FALSE;
@@ -479,7 +479,30 @@ ProcessAddressSpace::GetExecutableFileName()
 int
 ProcessAddressSpace::GetNextFreePage()
 {
-    // Check if there is a free page.
-    ASSERT(numPagesAllocated + 1 <= NumPhysPages);
-    return numPagesAllocated++;
+    int freePage = -1;
+    int i;
+
+    if (numPagesAllocated != NumPhysPages) {
+        if (pageReplacementAlgo == DEFAULT_REP) {
+            // return numPagesAllocated and increment it.
+            freePage == numPagesAllocated++;
+        }
+        else {
+            // Iterate over the physical addresses for a free page.
+            for (i = 0; i < NumPhysPages; i++) {
+                // TODO Verify if this is correct.
+                if (machine->memoryOwnerThread[i] == -1) {
+                    freePage = i;
+                }
+            }
+        }
+    }
+    else {
+        // Rest of the replacement algorithms.
+    }
+
+    // Update the owner of the current memory location.
+    machine->memoryOwnerThread[freePage] = currentThread->GetPID();
+
+    return freePage;
 }
