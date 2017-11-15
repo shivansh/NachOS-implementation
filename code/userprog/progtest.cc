@@ -45,6 +45,7 @@ LaunchUserProcess(char *filename)
 
     space->InitUserModeCPURegisters();		// set the initial register values
     space->RestoreContextOnSwitch();		// load page table register
+    space->SetExecutableFileName(filename);
 
     machine->Run();			// jump to the user progam
     ASSERT(FALSE);			// machine->Run never returns;

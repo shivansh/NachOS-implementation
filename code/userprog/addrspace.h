@@ -28,7 +28,7 @@ class ProcessAddressSpace {
 	ProcessAddressSpace(ProcessAddressSpace *parentSpace);	// Used by fork
 	int SharedAddressSpace(int spaceSize);
 
-	void PageFaultHandler(unsigned virtualAddress);
+	void PageFaultHandler(unsigned accessedVirtAddr);
 
 	~ProcessAddressSpace();			// De-allocate an address space
 
@@ -44,15 +44,18 @@ class ProcessAddressSpace {
 
 	TranslationEntry* GetPageTable();
 
-	NoffHeader noffH;
+	char* GetExecutableFileName();
+	void SetExecutableFileName(char*);
 
-	OpenFile *executable;
+	NoffHeader noffH;
 
     private:
 	TranslationEntry *KernelPageTable;	// Assume linear page table translation
 	// for now!
 	unsigned int numVirtualPages;		// Number of pages in the virtual
 	// address space
+	OpenFile *executable;
+	char *executableFileName;
 };
 
 #endif // ADDRSPACE_H

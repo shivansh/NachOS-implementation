@@ -75,6 +75,8 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *_executable)
     // how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
         + UserStackSize;	// we need to increase the size
+    printf("%u\n", noffH.code.inFileAddr);
+    printf("%u\n", noffH.code.size);
     // to leave room for the stack
     numVirtualPages = divRoundUp(size, PageSize);
     size = numVirtualPages * PageSize;
@@ -140,6 +142,7 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *_executable)
 
 ProcessAddressSpace::ProcessAddressSpace(ProcessAddressSpace *parentSpace)
 {
+    printf("Executing...\n");
     numVirtualPages = parentSpace->GetNumPages();
     TranslationEntry *parentPageTable = parentSpace->GetPageTable();
     unsigned i, j, numSharedPages = 0, size;
@@ -157,7 +160,7 @@ ProcessAddressSpace::ProcessAddressSpace(ProcessAddressSpace *parentSpace)
 
     // Check we're not trying to run anything too big --
     // at least until we have virtual memory.
-    ASSERT(numVirtualPages+numPagesAllocated <= NumPhysPages);
+    // ASSERT(numVirtualPages+numPagesAllocated <= NumPhysPages);
 
     DEBUG('a', "Initializing address space, num pages %d, size %d\n",
             numVirtualPages, size);
@@ -185,9 +188,7 @@ ProcessAddressSpace::ProcessAddressSpace(ProcessAddressSpace *parentSpace)
             if (parentPageTable[i].valid) {
                 KernelPageTable[i].physicalPage = numPagesAllocated;
                 for (k = 0; k < PageSize; k++) {
-                    // The variables 'j' and 'numPagesAllocate' are used to
-                    // keep track of the physical addresses to write to for
-                    // the child and parent respectively.
+                    // Copy from parent's address space to that of child.
                     machine->mainMemory[(numPagesAllocated*PageSize) + k] =
                         machine->mainMemory[(parentPageTable[i].physicalPage*PageSize) + k];
                 }
@@ -264,8 +265,14 @@ ProcessAddressSpace::PageFaultHandler(unsigned accessedVirtAddr)
     // TODO check for off-by-one error here.
     unsigned vpn = accessedVirtAddr / PageSize;
     unsigned pageFrame, offset;
-    TranslationEntry *entry;
+    unsigned startVirtAddr, endVirtAddress;
+    unsigned startCopyAddress, endCopyAddress;
+    // TranslationEntry *entry;
 
+    startVirtAddr = vpn * PageSize;
+    endVirtAddress = startVirtAddr + PageSize - 1;
+
+    // Update page fault count.
     stats->numPageFaults++;
 
     // Update the page table entry for this virtual page.
@@ -289,22 +296,43 @@ ProcessAddressSpace::PageFaultHandler(unsigned accessedVirtAddr)
     // following information:
 
     // virtualAddr
+    // -----------
     //     What virtual address that segment begins at (normally zero).
     // inFileAddr
+    // ----------
     //     Pointer within the Noff file where that section actually begins
     //     (so that Nachos can read it into memory before execution begins).
     // size
+    // ----
     //     The size (in bytes) of that segment.
+    //
+    // An example model
+    // ----------------
+    //
+    //  startVirtAddr -----> +--------------+ <----- noffH.code.virtualAddr -+
+    //                       |              |                                |- offset
+    //                       |~ ~ ~ ~ ~ ~ ~ | <----+-- accessedVirtAddr     -+
+    //                       |              |      |
+    //    endVirtAddr -----> +--------------+ <-+  +-- startCopyAddress
+    //                       |              |   |
+    //                       |              |   +----- endCopyAddress
+    //                       |              |
+    //                       +--------------+
+    //                       |              |
+    //                       |              |
+    //                       |              |
+    //                       +--------------+ <----- noffH.code.size
 
-    unsigned startVirtAddress = vpn * PageSize;
 
     // In case the accessed virtual address is at an offset.
-    unsigned startCopyAddress = max(startVirtAddress,
-                                    noffH.code.virtualAddr);
+    startCopyAddress = startVirtAddr;
+    printf("%u\n", startCopyAddress);
 
     // It might be possible that the segment ends before the page ends.
-    unsigned endCopyAddress = min(startVirtAddress + PageSize,
-                                  noffH.code.virtualAddr + noffH.code.size);
+    endCopyAddress = min(endVirtAddress, noffH.code.virtualAddr + noffH.code.size - 1);
+    printf("%u\n", endCopyAddress);
+    printf("%u\n", noffH.code.virtualAddr);
+    printf("%u\n", noffH.code.size);
 
     // Copy the code segment.
     // TODO noffH required here. Since every address space will be
@@ -317,29 +345,34 @@ ProcessAddressSpace::PageFaultHandler(unsigned accessedVirtAddr)
         // vpn = noffH.code.virtualAddr / PageSize;
         // offset = noffH.code.virtualAddr % PageSize;
         // offset = accessedVirtAddr % PageSize;
-        offset = startCopyAddress - startVirtAddress;
+        offset = startCopyAddress - startVirtAddr;
         // entry = &KernelPageTable[vpn];
         // pageFrame = entry->physicalPage;
         pageFrame = numPagesAllocated;
         // TODO How much to copy ?
-        executable->ReadAt(&(machine->mainMemory[pageFrame * PageSize + offset]),
-                            endCopyAddress - startCopyAddress,
-                            noffH.code.inFileAddr + (startCopyAddress - noffH.code.virtualAddr));
+
+        printf("--1\n");
+        printf("inFileAddr: %u\n", noffH.code.inFileAddr);
+        printf("%p\n", executable);
+
+        executable->ReadAt(&(machine->mainMemory[pageFrame*PageSize + offset]),
+                           (endCopyAddress - startCopyAddress + 1),
+                           noffH.code.inFileAddr + (startCopyAddress - noffH.code.virtualAddr));
+        printf("--2\n");
     }
 
     // In case the accessed virtual address is at an offset.
-    startCopyAddress = max(startVirtAddress,
-                           noffH.initData.virtualAddr);
+    startCopyAddress = startVirtAddr;
 
     // It might be possible that the segment ends before the page ends.
-    endCopyAddress = min(startVirtAddress + PageSize,
-                         noffH.initData.virtualAddr + noffH.initData.size);
+    endCopyAddress = min(endVirtAddress, noffH.initData.virtualAddr + noffH.initData.size);
+
     // Repeat the above procedure for the data segment.
     if (startCopyAddress < endCopyAddress) {
-        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
-                   noffH.initData.virtualAddr, noffH.initData.size);
+        // DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
+                   // noffH.initData.virtualAddr, noffH.initData.size);
         // offset = accessedVirtAddr % PageSize;
-        offset = startCopyAddress - startVirtAddress;
+        offset = startCopyAddress - startVirtAddr;
         // entry = &KernelPageTable[vpn];
         // pageFrame = entry->physicalPage;
         pageFrame = numPagesAllocated;
@@ -350,7 +383,6 @@ ProcessAddressSpace::PageFaultHandler(unsigned accessedVirtAddr)
 
     // Increment the allocated pages.
     numPagesAllocated++;
-
 }
 
 //----------------------------------------------------------------------
@@ -361,6 +393,7 @@ ProcessAddressSpace::PageFaultHandler(unsigned accessedVirtAddr)
 ProcessAddressSpace::~ProcessAddressSpace()
 {
     delete KernelPageTable;
+    delete executable;
 }
 
 //----------------------------------------------------------------------
@@ -435,7 +468,18 @@ ProcessAddressSpace::GetPageTable()
 OpenFile*
 ProcessAddressSpace::CreateNewExecutable()
 {
-    int fd = executable->GetFileDescriptor();
-    OpenFile *newFile = new OpenFile(fd);
-    return newFile;
+    printf("%s\n", GetExecutableFileName());
+    return fileSystem->Open(GetExecutableFileName());
+}
+
+void
+ProcessAddressSpace::SetExecutableFileName(char *_executableFileName)
+{
+    executableFileName = _executableFileName;
+}
+
+char*
+ProcessAddressSpace::GetExecutableFileName()
+{
+    return executableFileName;
 }
