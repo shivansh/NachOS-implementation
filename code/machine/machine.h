@@ -167,6 +167,7 @@ public:
     // TODO Check the data type of the time value,
     // will int be enough after a long duration ??
     int *LRUAccessTime;           // Tracks the access time for LRU.
+    bool *sharedPage;             // Tracks the shared physical pages.
 
     // NOTE: the hardware translation of virtual addresses in the user program
     // to physical addresses (relative to the beginning of "mainMemory")

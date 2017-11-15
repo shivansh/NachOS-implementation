@@ -240,6 +240,10 @@ ProcessAddressSpace::SharedAddressSpace(int spaceSize)
         sharedPageTable[i].dirty = FALSE;
         sharedPageTable[i].readOnly = FALSE;
         sharedPageTable[i].shared = TRUE;
+
+        // Track the shared pages. This will be helpful
+        // while performing page replacement.
+        machine->sharedPage[sharedPageTable[i].physicalPage] = 1;
     }
 
     numPagesAllocated += numSharedPages;
@@ -481,6 +485,7 @@ ProcessAddressSpace::GetNextFreePage()
 {
     int freePage = -1;
     int i;
+    int min_ticks;
 
     if (numPagesAllocated != NumPhysPages) {
         if (pageReplacementAlgo == DEFAULT_REP) {
@@ -506,11 +511,13 @@ ProcessAddressSpace::GetNextFreePage()
 
             case LRU_REP:
                 // Find the page with the least access time.
-                val = LRUAccessTime[0];
+                // In the current model, the shared pages
+                // are not replaced.
+                min_ticks = machine->LRUAccessTime[0];
                 for (i = 0; i < NumPhysPages; i++) {
-                    if (machine->LRUAccessTime[i] < val) {
-                        // TODO Also check if the page is shared.
-                        val = machine->LRUAccessTime[i];
+                    if (machine->LRUAccessTime[i] < min_ticks &&
+                        machine->sharedPage[i] == FALSE) {
+                        min_ticks = machine->LRUAccessTime[i];
                         freePage = i;
                     }
                 }

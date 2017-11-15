@@ -66,11 +66,13 @@ Machine::Machine(bool debug)
 
     memoryOwnerThread = new int[NumPhysPages];
     LRUAccessTime = new int[NumPhysPages];
+    sharedPage = new bool[NumPhysPages];
 
     for (i = 0; i < NumPhysPages; i++) {
         memoryOwnerThread[i] = -1;      // No memory location
                                         // is assigned initially
         LRUAccessTime[i] = 0;
+        sharedPage[i] = FALSE;
     }
 
 
@@ -98,6 +100,7 @@ Machine::~Machine()
     delete[] mainMemory;
     delete[] memoryOwnerThread;
     delete[] LRUAccessTime;
+    delete[] sharedPage;
     if (tlb != NULL)
         delete[] tlb;
 }
