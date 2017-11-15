@@ -75,8 +75,6 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *_executable)
     // how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
         + UserStackSize;	// we need to increase the size
-    printf("%u\n", noffH.code.inFileAddr);
-    printf("%u\n", noffH.code.size);
     // to leave room for the stack
     numVirtualPages = divRoundUp(size, PageSize);
     size = numVirtualPages * PageSize;
@@ -326,39 +324,28 @@ ProcessAddressSpace::PageFaultHandler(unsigned accessedVirtAddr)
 
     // In case the accessed virtual address is at an offset.
     startCopyAddress = startVirtAddr;
-    printf("%u\n", startCopyAddress);
+    printf("startCopyAddress: %u\n", startCopyAddress);
 
     // It might be possible that the segment ends before the page ends.
     endCopyAddress = min(endVirtAddress, noffH.code.virtualAddr + noffH.code.size - 1);
-    printf("%u\n", endCopyAddress);
-    printf("%u\n", noffH.code.virtualAddr);
-    printf("%u\n", noffH.code.size);
+    printf("endCopyAddress: %u\n", endCopyAddress);
+    printf("noffH.code.virtualAddr: %u\n", noffH.code.virtualAddr);
+    printf("noffH.code.size: %u\n", noffH.code.size);
 
     // Copy the code segment.
     // TODO noffH required here. Since every address space will be
     // associated with unique _executable, this can be made a private variable.
     if (startCopyAddress < endCopyAddress) {
-        // DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
-                    // noffH.code.virtualAddr, noffH.code.size);
-        // TODO Which vpn to use now ? The one obtained from
-        // the (x) argument or (✓) the one obtained here.
-        // vpn = noffH.code.virtualAddr / PageSize;
-        // offset = noffH.code.virtualAddr % PageSize;
-        // offset = accessedVirtAddr % PageSize;
         offset = startCopyAddress - startVirtAddr;
-        // entry = &KernelPageTable[vpn];
-        // pageFrame = entry->physicalPage;
         pageFrame = numPagesAllocated;
-        // TODO How much to copy ?
 
-        printf("--1\n");
-        printf("inFileAddr: %u\n", noffH.code.inFileAddr);
-        printf("%p\n", executable);
+        printf("Before calling 'executable->ReadAt()'\n");
+        printf("Executable pointer: %p\n", executable);
 
         executable->ReadAt(&(machine->mainMemory[pageFrame*PageSize + offset]),
                            (endCopyAddress - startCopyAddress + 1),
                            noffH.code.inFileAddr + (startCopyAddress - noffH.code.virtualAddr));
-        printf("--2\n");
+        printf("After calling 'executable->ReadAt()'\n");
     }
 
     // In case the accessed virtual address is at an offset.

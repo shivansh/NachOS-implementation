@@ -308,7 +308,7 @@ ExceptionHandler(ExceptionType which)
         machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
         machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
     } else if ((which == PageFaultException)) {
-        printf("--PageFaultException\n");
+        printf("\n--PageFaultException encountered--\n\n");
         tempval = (unsigned)machine->ReadRegister(39);
         currentThread->space->PageFaultHandler(tempval);
         machine->WriteRegister(2, 0);
