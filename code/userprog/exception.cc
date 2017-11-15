@@ -128,13 +128,13 @@ ExceptionHandler(ExceptionType which)
     } else if ((which == SyscallException) && (type == SysCall_Exec)) {
         // Copy the executable name into kernel space
         vaddr = machine->ReadRegister(4);
-        machine->ReadMem(vaddr, 1, &memval);
+        while(!machine->ReadMem(vaddr, 1, &memval));
         i = 0;
         while ((*(char*)&memval) != '\0') {
             buffer[i] = (*(char*)&memval);
             i++;
             vaddr++;
-            machine->ReadMem(vaddr, 1, &memval);
+            while(!machine->ReadMem(vaddr, 1, &memval));
         }
         buffer[i] = (*(char*)&memval);
         LaunchUserProcess(buffer);
@@ -215,12 +215,12 @@ ExceptionHandler(ExceptionType which)
         machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
     } else if ((which == SyscallException) && (type == SysCall_PrintString)) {
         vaddr = machine->ReadRegister(4);
-        machine->ReadMem(vaddr, 1, &memval);
+        while(!machine->ReadMem(vaddr, 1, &memval));
         while ((*(char*)&memval) != '\0') {
             writeDone->P();
             console->PutChar(*(char*)&memval);
             vaddr++;
-            machine->ReadMem(vaddr, 1, &memval);
+            while(!machine->ReadMem(vaddr, 1, &memval));
         }
         // Advance program counters.
         machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -308,7 +308,7 @@ ExceptionHandler(ExceptionType which)
         machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
         machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
     } else if ((which == PageFaultException)) {
-        printf("\n--PageFaultException encountered--\n\n");
+        printf("\n-- PageFaultException encountered --\n\n");
         tempval = (unsigned)machine->ReadRegister(39);
         currentThread->space->PageFaultHandler(tempval);
         machine->WriteRegister(2, 0);

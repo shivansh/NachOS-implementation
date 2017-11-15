@@ -61,7 +61,6 @@ ProcessAddressSpace::ProcessAddressSpace(OpenFile *_executable)
     // NoffHeader noffH;           // Now a public class variable.
     unsigned int i, size;
     unsigned vpn, offset;
-    TranslationEntry *entry;
     unsigned int pageFrame;
 
     executable = _executable;
@@ -191,6 +190,7 @@ ProcessAddressSpace::ProcessAddressSpace(ProcessAddressSpace *parentSpace)
                         machine->mainMemory[(parentPageTable[i].physicalPage*PageSize) + k];
                 }
                 numPagesAllocated++;
+                currentThread->SortedInsertInWaitQueue(1000 + stats->totalTicks);
             }
         }
         else {
@@ -339,8 +339,9 @@ ProcessAddressSpace::PageFaultHandler(unsigned accessedVirtAddr)
         offset = startCopyAddress - startVirtAddr;
         pageFrame = numPagesAllocated;
 
-        printf("Before calling 'executable->ReadAt()'\n");
-        printf("Executable pointer: %p\n", executable);
+        printf("\n-- Before calling 'executable->ReadAt()' --\n\n");
+        printf("Pointer value of the copied executable: %p\n", executable);
+        printf("\n-- At this point the assertion at 'Lseek()' fails --\n\n'");
 
         executable->ReadAt(&(machine->mainMemory[pageFrame*PageSize + offset]),
                            (endCopyAddress - startCopyAddress + 1),
@@ -370,6 +371,7 @@ ProcessAddressSpace::PageFaultHandler(unsigned accessedVirtAddr)
 
     // Increment the allocated pages.
     numPagesAllocated++;
+    currentThread->SortedInsertInWaitQueue(1000 + stats->totalTicks);
 }
 
 //----------------------------------------------------------------------
